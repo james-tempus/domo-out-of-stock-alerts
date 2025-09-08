@@ -154,7 +154,8 @@ class OutOfStockAlertsApp {
                     title: "Product Name",
                     field: "productName",
                     width: 200,
-                    sorter: "string"
+                    sorter: "string",
+                    headerWordWrap: true
                 },
                 {
                     title: "Category",
@@ -167,6 +168,9 @@ class OutOfStockAlertsApp {
                     field: "currentStock",
                     width: 120,
                     sorter: "number",
+                    headerWordWrap: true,
+                    headerHozAlign: "left",
+                    hozAlign: "center",
                     formatter: (cell) => {
                         const value = cell.getValue();
                         const row = cell.getRow().getData();
@@ -182,13 +186,18 @@ class OutOfStockAlertsApp {
                     title: "Min Threshold",
                     field: "minThreshold",
                     width: 120,
-                    sorter: "number"
+                    sorter: "number",
+                    headerWordWrap: true,
+                    headerHozAlign: "left",
+                    hozAlign: "center"
                 },
                 {
                     title: "Priority",
                     field: "priority",
                     width: 100,
                     sorter: "string",
+                    headerHozAlign: "left",
+                    hozAlign: "center",
                     formatter: (cell) => {
                         const value = cell.getValue();
                         const className = `priority-${value}`;
@@ -199,24 +208,35 @@ class OutOfStockAlertsApp {
                     title: "Last Restock",
                     field: "lastRestock",
                     width: 120,
-                    sorter: "date"
+                    sorter: "date",
+                    headerWordWrap: true,
+                    headerHozAlign: "left",
+                    hozAlign: "center"
                 },
                 {
                     title: "Alert Date",
                     field: "alertDate",
                     width: 120,
-                    sorter: "date"
+                    sorter: "date",
+                    headerWordWrap: true,
+                    headerHozAlign: "left",
+                    hozAlign: "center"
                 },
                 {
                     title: "Supplier",
                     field: "supplier",
                     width: 150,
-                    sorter: "string"
+                    sorter: "string",
+                    headerHozAlign: "left",
+                    hozAlign: "center"
                 },
                 {
                     title: "Acknowledged",
                     field: "acknowledged",
-                    width: 120,
+                    width: 130,
+                    headerWordWrap: true,
+                    headerHozAlign: "left",
+                    hozAlign: "center",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
                         const isAcknowledged = this.acknowledgedAlerts.has(row.productId);
@@ -257,6 +277,9 @@ class OutOfStockAlertsApp {
             this.acknowledgedAlerts.delete(productId);
             this.removeAcknowledgmentFromAppDB(productId);
             this.showSuccessMessage(`Acknowledgment removed for ${productData.productName}`);
+            
+            // Update table data to reflect the change
+            this.updateTableData();
         }
         
         this.updateStats();
@@ -293,7 +316,7 @@ class OutOfStockAlertsApp {
         
         // Remove from localStorage for demo
         const existingData = JSON.parse(localStorage.getItem('acknowledgedAlerts') || '[]');
-        const filteredData = existingData.filter(item => item.alertId !== productId);
+        const filteredData = existingData.filter(item => item.productId !== productId);
         localStorage.setItem('acknowledgedAlerts', JSON.stringify(filteredData));
         
         // In a real Domo app, you would use:

@@ -159,10 +159,41 @@ body {
     color: #333;
 }
 
+/* Reduce padding between header text and sorting arrow using proper Tabulator selectors */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+    padding-right: 1px;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+    margin-right: 0;
+    padding-right: 0;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-sorter {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+/* Specific fix for the Acknowledged column (rightmost column) */
+.tabulator .tabulator-header .tabulator-col:last-child .tabulator-col-content {
+    padding-right: 2px;
+}
+
+.tabulator .tabulator-header .tabulator-col:last-child .tabulator-col-title {
+    margin-right: 1px;
+}
+
 /* Priority styling */
 .priority-high {
     color: #dc3545 !important;
     font-weight: 600 !important;
+}
+
+/* Column header vertical centering */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .priority-medium {
