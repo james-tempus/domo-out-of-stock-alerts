@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Out of Stock Alerts - Domo Procode App</title>
+    
+    <!-- Tabulator CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css?v=12">
+</head>
+<body>
+    <div class="app-container">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number" id="total-alerts">0</div>
+                <div class="stat-label">Total Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="acknowledged-alerts">0</div>
+                <div class="stat-label">Acknowledged</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pending-alerts">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <div class="table-header">
+                <div class="filter-toggle">
+                    <button id="filter-pending" class="filter-btn active">Pending</button>
+                    <button id="filter-acknowledged" class="filter-btn">Acknowledged</button>
+                    <button id="filter-all" class="filter-btn">All Items</button>
+                </div>
+            </div>
+            <div id="alerts-table"></div>
+        </div>
+    </div>
+
+    <!-- Tabulator JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="app.js?v=12"></script>
+</body>
+</html>

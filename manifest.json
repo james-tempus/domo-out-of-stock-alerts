@@ -1,0 +1,13 @@
+{
+  "name": "Out of Stock Alerts",
+  "version": "1.0.0",
+  "description": "Domo procode app for monitoring and acknowledging out-of-stock product alerts with Tabulator table",
+  "main": "index.html",
+  "width": 3,
+  "height": 2,
+  "fileName": "manifest.json",
+  "mapping": {
+    "datasets": []
+  },
+  "id": "5e067702-328a-4d47-9fbe-dca1c34eca5e"
+}

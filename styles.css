@@ -1,0 +1,322 @@
+/* Domo-inspired styling with neutral colors and clean design */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: transparent;
+    color: #333;
+    line-height: 1.6;
+}
+
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.table-container {
+    background: #f8f8f8;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    position: relative;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+
+.table-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
+
+.filter-toggle {
+    display: flex;
+    gap: 4px;
+    background: #f8f9fa;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-btn:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.filter-btn.active {
+    background: #007bff;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+.stat-card {
+    background: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border-top: 2px solid #007bff;
+}
+
+.stat-card:nth-child(2) {
+    border-top-color: #28a745; /* Green for acknowledged */
+}
+
+.stat-card:nth-child(3) {
+    border-top-color: #dc3545; /* Red for pending */
+}
+
+.stat-number {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 2px;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Clean Tabulator styling */
+.tabulator {
+    border: 1px solid #e0e0e0;
+    font-family: inherit;
+    background-color: white;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.tabulator .tabulator-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.tabulator .tabulator-header .tabulator-col {
+    background-color: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+    color: #495057;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 12px 8px;
+}
+
+.tabulator .tabulator-header .tabulator-col:hover {
+    background-color: #e9ecef;
+}
+
+.tabulator .tabulator-tableholder {
+    background-color: white;
+}
+
+.tabulator .tabulator-row {
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s ease;
+}
+
+.tabulator .tabulator-row:hover {
+    background-color: #f8f9fa;
+}
+
+.tabulator .tabulator-row.tabulator-row-even {
+    background-color: #fafbfc;
+}
+
+.tabulator .tabulator-cell {
+    border-right: 1px solid #f1f3f4;
+    padding: 12px 8px;
+    font-size: 13px;
+    color: #333;
+}
+
+/* Priority styling */
+.priority-high {
+    color: #dc3545 !important;
+    font-weight: 600 !important;
+}
+
+.priority-medium {
+    color: #fd7e14 !important;
+    font-weight: 600 !important;
+}
+
+.priority-low {
+    color: #28a745 !important;
+    font-weight: 600 !important;
+}
+
+/* Status styling */
+.status-out-of-stock {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+}
+
+.status-low-stock {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+}
+
+/* Checkbox styling */
+.acknowledgment-checkbox {
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer !important;
+    accent-color: #007bff !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .app-container {
+        padding: 5px;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .stat-card {
+        padding: 12px;
+    }
+    
+    .stat-number {
+        font-size: 20px;
+    }
+    
+    .table-container {
+        padding: 10px;
+        overflow-x: auto;
+    }
+    
+    .table-header {
+        margin-bottom: 10px;
+    }
+    
+    .filter-toggle {
+        gap: 2px;
+        padding: 2px;
+    }
+    
+    .filter-btn {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+    
+}
+
+@media (max-width: 480px) {
+    .app-container {
+        padding: 2px;
+    }
+    
+    .table-container {
+        padding: 5px;
+    }
+    
+    .stats-container {
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+    
+    .stat-card {
+        padding: 8px;
+    }
+    
+    .stat-number {
+        font-size: 18px;
+    }
+    
+    .stat-label {
+        font-size: 10px;
+    }
+    
+    .filter-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+
+/* Success message overlay */
+.success-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #d4edda;
+    color: #155724;
+    padding: 16px 24px;
+    border-radius: 8px;
+    border: 1px solid #c3e6cb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    font-weight: 600;
+    font-size: 14px;
+    display: none;
+    animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+
+/* Error message */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    border: 1px solid #f5c6cb;
+    display: none;
+}
