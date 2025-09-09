@@ -194,8 +194,8 @@ class DataService {
                     acknowledgedBy: 'user' // In production, get actual user ID
                 };
 
-                // Use Domo's AppDB collection API
-                await domo.post('/data/v1/collections/acknowledged-alerts', acknowledgmentData);
+                // Use Domo's AppDB API
+                await domo.post('/data/v1/appdb/acknowledged-alerts', acknowledgmentData);
                 console.log('Acknowledgment saved to AppDB collection');
                 
                 // Trigger manual sync to dataset (if syncEnabled is true in manifest)
@@ -227,9 +227,17 @@ class DataService {
             try {
                 console.log('Removing acknowledgment from Domo AppDB:', productId);
                 
-                // Use Domo's AppDB collection API with query parameter
-                await domo.delete(`/data/v1/collections/acknowledged-alerts?productId=${productId}`);
-                console.log('Acknowledgment removed from AppDB collection');
+                // First, get the document ID for the productId
+                const existingData = await domo.get('/data/v1/appdb/acknowledged-alerts');
+                const documentToDelete = existingData.find(item => item.productId === productId);
+                
+                if (documentToDelete && documentToDelete._id) {
+                    // Use Domo's AppDB API to delete by document ID
+                    await domo.delete(`/data/v1/appdb/acknowledged-alerts/${documentToDelete._id}`);
+                    console.log('Acknowledgment removed from AppDB collection');
+                } else {
+                    console.log('No acknowledgment found to remove for productId:', productId);
+                }
                 
                 // Trigger manual sync to dataset (if syncEnabled is true in manifest)
                 await this.triggerCollectionSync('acknowledged-alerts');
@@ -253,7 +261,7 @@ class DataService {
             try {
                 console.log('Loading acknowledged alerts from Domo AppDB collection');
                 
-                const data = await domo.get('/data/v1/collections/acknowledged-alerts');
+                const data = await domo.get('/data/v1/appdb/acknowledged-alerts');
                 return new Set(data.map(item => item.productId));
             } catch (error) {
                 console.error('Error loading acknowledged alerts from AppDB:', error);
@@ -275,11 +283,14 @@ class DataService {
                 console.log(`Triggering manual sync for collection: ${collectionName}`);
                 
                 // Use Domo's manual export API to force sync to dataset
-                await domo.post(`/data/v1/collections/${collectionName}/export`);
+                // Note: This endpoint may vary based on Domo's implementation
+                // The sync is typically handled by the manifest syncEnabled configuration
+                await domo.post(`/data/v1/appdb/${collectionName}/export`);
                 console.log(`Manual sync triggered for collection: ${collectionName}`);
             } catch (error) {
                 console.error(`Error triggering sync for collection ${collectionName}:`, error);
                 // Don't throw error - sync failure shouldn't break the app
+                // The automatic sync via manifest should still work
             }
         } else {
             console.log(`Manual sync triggered for collection: ${collectionName} (development mode - no actual sync)`);

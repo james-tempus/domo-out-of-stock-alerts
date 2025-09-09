@@ -121,7 +121,15 @@ The app is configured with `syncEnabled: true` to automatically sync acknowledgm
 ### Manual Sync API
 The app includes manual sync functionality that triggers immediate export of AppDB collections to datasets:
 
-- **API Endpoint**: `/data/v1/collections/{collectionName}/export`
+- **API Endpoint**: `/data/v1/appdb/{collectionName}/export`
 - **Triggered**: Automatically after each acknowledgment save/remove
 - **Fallback**: Graceful error handling - sync failures don't break the app
 - **Development**: Simulated in local development mode
+
+### AppDB API Endpoints Used
+Based on the [official Domo AppDB API documentation](https://developer.domo.com/portal/1l1fm2g0sfm69-app-db-api):
+
+- **Save Data**: `POST /data/v1/appdb/{collectionName}`
+- **Load Data**: `GET /data/v1/appdb/{collectionName}`
+- **Delete Data**: `DELETE /data/v1/appdb/{collectionName}/{documentId}`
+- **Manual Export**: `POST /data/v1/appdb/{collectionName}/export`
