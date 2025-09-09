@@ -5,5 +5,88 @@
     "width": 3,
     "height": 2
   },
-  "mapping": []
+  "fileName": "manifest.json",
+  "datasetsMapping": [
+    {
+      "dataSetId": "00000000-0000-0000-0000-000000000000",
+      "alias": "product-alerts",
+      "fields": [
+        {
+          "alias": "productId",
+          "columnName": "product_id"
+        },
+        {
+          "alias": "productName",
+          "columnName": "product_name"
+        },
+        {
+          "alias": "category",
+          "columnName": "category"
+        },
+        {
+          "alias": "currentStock",
+          "columnName": "current_stock"
+        },
+        {
+          "alias": "minThreshold",
+          "columnName": "min_threshold"
+        },
+        {
+          "alias": "lastRestock",
+          "columnName": "last_restock"
+        },
+        {
+          "alias": "priority",
+          "columnName": "priority"
+        },
+        {
+          "alias": "status",
+          "columnName": "status"
+        },
+        {
+          "alias": "alertDate",
+          "columnName": "alert_date"
+        },
+        {
+          "alias": "supplier",
+          "columnName": "supplier"
+        }
+      ],
+      "dql": null
+    }
+  ],
+  "collectionsMapping": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "acknowledged-alerts",
+      "syncEnabled": true,
+      "schema": {
+        "columns": [
+          {
+            "name": "productId",
+            "type": "STRING"
+          },
+          {
+            "name": "productName",
+            "type": "STRING"
+          },
+          {
+            "name": "category",
+            "type": "STRING"
+          },
+          {
+            "name": "acknowledgedAt",
+            "type": "DATETIME"
+          },
+          {
+            "name": "acknowledgedBy",
+            "type": "STRING"
+          }
+        ]
+      }
+    }
+  ],
+  "fullpage": true,
+  "packagesMapping": [],
+  "id": "ee6be1c5-8b99-49dd-bfdb-9274f3fe1b79"
 }
