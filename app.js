@@ -5,15 +5,34 @@ class OutOfStockAlertsApp {
     constructor() {
         this.table = null;
         this.acknowledgedAlerts = new Set();
-        this.sampleData = SAMPLE_DATA; // Use external sample data
+        this.sampleData = []; // Will be loaded from data service
         this.currentFilter = 'pending'; // Default to pending
+        this.dataService = new DataService();
         this.init();
     }
 
-    init() {
-        this.setupEventListeners();
-        this.initializeTable();
-        this.updateStats();
+    async init() {
+        try {
+            // Load data from data service (Domo dataset or local)
+            this.sampleData = await this.dataService.init();
+            console.log('Data loaded:', this.sampleData.length, 'items');
+            
+            // Load acknowledged alerts from storage
+            this.acknowledgedAlerts = await this.dataService.loadAcknowledgedAlerts();
+            console.log('Acknowledged alerts loaded:', this.acknowledgedAlerts.size, 'items');
+            
+            this.setupEventListeners();
+            this.initializeTable();
+            this.updateStats();
+        } catch (error) {
+            console.error('Error initializing app:', error);
+            // Fallback to empty data
+            this.sampleData = [];
+            this.acknowledgedAlerts = new Set();
+            this.setupEventListeners();
+            this.initializeTable();
+            this.updateStats();
+        }
     }
 
     initializeTable() {
@@ -143,67 +162,35 @@ class OutOfStockAlertsApp {
         console.log('Table data:', this.table.getData());
     }
 
-    handleAcknowledgment(productId, isAcknowledged, productData) {
-        if (isAcknowledged) {
-            this.acknowledgedAlerts.add(productId);
-            this.saveAcknowledgmentToAppDB(productData);
-            this.showSuccessMessage(`Alert acknowledged for ${productData.productName}`);
-            
-            // If we're showing pending only, hide the row after a brief delay
-            if (this.currentFilter === 'pending') {
-                setTimeout(() => {
-                    this.updateTableData();
-                }, 1000);
+    async handleAcknowledgment(productId, isAcknowledged, productData) {
+        try {
+            if (isAcknowledged) {
+                this.acknowledgedAlerts.add(productId);
+                await this.dataService.saveAcknowledgment(productData);
+                this.showSuccessMessage(`Alert acknowledged for ${productData.productName}`);
+                
+                // If we're showing pending only, hide the row after a brief delay
+                if (this.currentFilter === 'pending') {
+                    setTimeout(() => {
+                        this.updateTableData();
+                    }, 1000);
+                }
+            } else {
+                this.acknowledgedAlerts.delete(productId);
+                await this.dataService.removeAcknowledgment(productId);
+                this.showSuccessMessage(`Acknowledgment removed for ${productData.productName}`);
+                
+                // Update table data to reflect the change
+                this.updateTableData();
             }
-        } else {
-            this.acknowledgedAlerts.delete(productId);
-            this.removeAcknowledgmentFromAppDB(productId);
-            this.showSuccessMessage(`Acknowledgment removed for ${productData.productName}`);
             
-            // Update table data to reflect the change
-            this.updateTableData();
+            this.updateStats();
+        } catch (error) {
+            console.error('Error handling acknowledgment:', error);
+            this.showSuccessMessage('Error saving acknowledgment. Please try again.');
         }
-        
-        this.updateStats();
     }
 
-    saveAcknowledgmentToAppDB(productData) {
-        // In a real Domo app, this would save to AppDB
-        // For demo purposes, we'll simulate this with localStorage
-        const acknowledgmentData = {
-            productId: productData.productId,
-            productName: productData.productName,
-            category: productData.category,
-            acknowledgedAt: new Date().toISOString(),
-            acknowledgedBy: "Current User", // In Domo, this would be the actual user
-            alertId: productData.id,
-            originalAlertDate: productData.alertDate
-        };
-
-        // Simulate AppDB save
-        console.log("Saving to AppDB:", acknowledgmentData);
-        
-        // Store in localStorage for demo
-        const existingData = JSON.parse(localStorage.getItem('acknowledgedAlerts') || '[]');
-        existingData.push(acknowledgmentData);
-        localStorage.setItem('acknowledgedAlerts', JSON.stringify(existingData));
-        
-        // In a real Domo app, you would use:
-        // domo.post('/data/v1/appdb/acknowledged-alerts', acknowledgmentData);
-    }
-
-    removeAcknowledgmentFromAppDB(productId) {
-        // In a real Domo app, this would remove from AppDB
-        console.log("Removing from AppDB for product ID:", productId);
-        
-        // Remove from localStorage for demo
-        const existingData = JSON.parse(localStorage.getItem('acknowledgedAlerts') || '[]');
-        const filteredData = existingData.filter(item => item.productId !== productId);
-        localStorage.setItem('acknowledgedAlerts', JSON.stringify(filteredData));
-        
-        // In a real Domo app, you would use:
-        // domo.delete(`/data/v1/appdb/acknowledged-alerts/${productId}`);
-    }
 
     updateStats() {
         const totalAlerts = this.sampleData.length;

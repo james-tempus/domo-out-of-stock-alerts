@@ -25,14 +25,24 @@ A clean, minimal Domo Procode app for managing out-of-stock product alerts with 
 ## Technical Details
 
 - **Tabulator.js**: Version 6.3.1 for modern table functionality
-- **localStorage**: Simulates AppDB for acknowledgment persistence
+- **Data Service**: Handles both local SQL data (development) and Domo datasets (production)
+- **SQL Sample Data**: `sample-data.sql` contains the sample data structure
 - **Responsive Design**: Adapts to different screen sizes with proper column wrapping
 - **Clean Styling**: Minimal, professional appearance with Domo-inspired design
 - **GitHub Pages**: Automatically deployed from main branch
 
 ## Sample Data
 
-Includes 8 sample products with various stock levels, priorities, and suppliers for testing.
+- **Development**: Uses `sample-data.js` for local testing
+- **SQL Structure**: `sample-data.sql` contains the database schema and sample data
+- **Production**: Connects to Domo dataset specified in `manifest.json`
+- **Data Service**: Automatically switches between local and Domo data sources
+
+### SQL Schema
+The `sample-data.sql` file contains:
+- Table creation with proper column types
+- Sample data insertion
+- Query examples for production use
 
 ## Usage
 
@@ -56,4 +66,27 @@ Includes 8 sample products with various stock levels, priorities, and suppliers 
 
 ## Domo Integration
 
-This app is designed to be deployed as a Domo Procode app and can be connected to real datasets for production use.
+### Production Deployment
+1. **Dataset Connection**: The app automatically connects to the dataset specified in `manifest.json`
+2. **Data Service**: Handles data retrieval from Domo datasets in production
+3. **AppDB Integration**: Acknowledgments are saved to Domo AppDB for persistence
+4. **Error Handling**: Falls back to local data if Domo services are unavailable
+
+### Development vs Production
+- **Development**: Uses `sample-data.js` and `localStorage` for testing
+- **Production**: Uses Domo dataset queries and AppDB for data persistence
+- **Automatic Detection**: The app detects the environment and switches data sources accordingly
+
+### Dataset Requirements
+Your Domo dataset should include these columns:
+- `product_id` (or `productId`)
+- `product_name` (or `productName`) 
+- `category`
+- `current_stock` (or `currentStock`)
+- `min_threshold` (or `minThreshold`)
+- `last_restock` (or `lastRestock`)
+- `priority`
+- `status`
+- `alert_date` (or `alertDate`)
+- `supplier`
+- `acknowledged`
