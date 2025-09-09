@@ -363,6 +363,8 @@ When making changes to this app:
 5. **Follow Tabulator 6.3.1 documentation** for table modifications
 6. **Preserve responsive design** and Domo branding
 7. **Update this documentation** when making structural changes
+8. **Use .md extension** for documentation files (Domo truncates large .txt files)
+9. **Test file downloads** with `domo download` to verify content integrity
 
 ### Key Files to Modify
 - **Data changes**: `data-service.js`
@@ -378,11 +380,22 @@ When making changes to this app:
 - [ ] Summary boxes update
 - [ ] Table displays properly
 - [ ] Responsive design works
+- [ ] Documentation files download correctly (use .md extension)
+- [ ] File integrity verified with `domo download`
+
+### Workflow for Checking Domo Changes
+1. **Download from Domo**: `domo download -i 5e067702-328a-4d47-9fbe-dca1c34eca5e`
+2. **Compare files**: `git status` and `git diff`
+3. **Verify content**: Check that .md files downloaded with full content
+4. **Merge changes**: `git add .` and `git commit` if changes are valid
+5. **Test locally**: Ensure changes work before redeploying
 
 ## VERSION HISTORY
 - v1.0.0: Initial implementation with basic Tabulator table
 - v1.1.0: Added proper Domo dataset querying and filter listening
 - v1.1.1: Fixed filter listening to use domo.onFiltersUpdate()
+- v1.2.0: Added comprehensive documentation and discovered Domo file handling limitations
+- v1.2.1: Renamed PROMPT.txt to PROMPT.md for better Domo compatibility
 
 ## DOCUMENTATION SOURCES & REFERENCES
 
@@ -416,6 +429,14 @@ When making changes to this app:
 - **Domo CLI**: https://developer.domo.com/docs/domo-cli
 - **Local Development**: https://developer.domo.com/docs/local-development
 - **App Deployment**: https://developer.domo.com/docs/app-deployment
+
+### Domo File Handling Limitations
+**CRITICAL: File Extension Requirements**
+- **.txt files**: Large files (>10KB) download as 0 bytes from Domo
+- **.md files**: Full content preserved and downloadable
+- **Recommendation**: Use .md extension for all documentation files
+- **Tested**: PROMPT.txt (15KB) → 0 bytes, PROMPT.md (15KB) → full content
+- **Workaround**: Rename large .txt files to .md before publishing
 
 ### Source Data & References Used
 - **Sample Data**: 8 product alerts with various categories and priorities
