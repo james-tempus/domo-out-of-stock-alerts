@@ -7,7 +7,7 @@ A Domo Procode Custom App that displays out-of-stock product alerts in an intera
 **Before using this app in production:**
 - The app currently uses **sample data** (8 product alerts)
 - To connect to a **real dataset**, you must replace the dataset ID in `manifest.json`
-- See the [PROMPT.txt](./PROMPT.txt) file for detailed configuration instructions
+- See the [PROMPT.md](./PROMPT.md) file for detailed configuration instructions
 
 ## 🚀 Live Preview
 [View Live Demo](https://james-tempus.github.io/domo-out-of-stock-alerts/)
@@ -108,7 +108,7 @@ For complete documentation including:
 - Troubleshooting guide
 - AI assistant instructions
 
-**See [PROMPT.txt](./PROMPT.txt) for comprehensive documentation.**
+**See [PROMPT.md](./PROMPT.md) for comprehensive documentation.**
 
 ## 🔧 Key Features Explained
 
