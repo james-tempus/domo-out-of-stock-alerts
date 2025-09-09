@@ -556,6 +556,34 @@ Always use full Tabulator selector chains:
 }
 ```
 
+### ENVIRONMENT DETECTION RULES
+**CRITICAL**: Proper environment detection is essential for app functionality.
+
+**WRONG APPROACH** (causes issues):
+```javascript
+// DON'T use - domo.env exists even in local development
+if (typeof domo !== 'undefined' && domo.env) {
+    // This will incorrectly identify local as Domo environment
+}
+```
+
+**CORRECT APPROACH** (reliable):
+```javascript
+// DO use - check domain name for reliable detection
+const isDomoDomain = window.location.hostname.includes('domo.com') || 
+                    window.location.hostname.includes('domo');
+
+if (typeof domo !== 'undefined' && isDomoDomain && typeof domo.get === 'function') {
+    // This correctly identifies Domo environment
+}
+```
+
+**Why Domain Checking Works**:
+- `domo` object may exist in local development (from CDN scripts)
+- `domo.env` may be available even locally (from ryuu.js)
+- Domain checking is the most reliable indicator of actual Domo environment
+- Always test both local and Domo environments after changes
+
 ### GENERAL APP DEVELOPMENT
 When making changes to this app:
 
@@ -572,6 +600,7 @@ When making changes to this app:
 11. **Use .md extension** for documentation files (Domo truncates large .txt files)
 12. **Test file downloads** with `domo download` to verify content integrity
 13. **Document any new Tabulator discoveries** in this PROMPT.md file
+14. **Always test environment detection** in both local and Domo environments
 
 ### Key Files to Modify
 - **Data changes**: `data-service.js`
