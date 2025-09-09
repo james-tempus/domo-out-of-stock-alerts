@@ -1,28 +1,11 @@
 {
   "name": "Out of Stock Alerts",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Domo procode app for monitoring and acknowledging out-of-stock product alerts with Tabulator table",
   "main": "index.html",
   "width": 3,
   "height": 2,
   "fileName": "manifest.json",
   "id": "5e067702-328a-4d47-9fbe-dca1c34eca5e",
-  "datasetsMapping": [
-    {
-      "alias": "product-alerts",
-      "dataSetId": "YOUR_DATASET_ID_HERE",
-      "fields": [
-        "product_id",
-        "product_name", 
-        "category",
-        "current_stock",
-        "min_threshold",
-        "last_restock",
-        "priority",
-        "status",
-        "alert_date",
-        "supplier"
-      ]
-    }
-  ]
+  "datasetsMapping": []
 }
