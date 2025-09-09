@@ -2,6 +2,13 @@
 
 A Domo Procode Custom App that displays out-of-stock product alerts in an interactive Tabulator table with acknowledgment functionality and real-time filter integration.
 
+## ⚠️ Important: Dataset Configuration Required
+
+**Before using this app in production:**
+- The app currently uses **sample data** (8 product alerts)
+- To connect to a **real dataset**, you must replace the dataset ID in `manifest.json`
+- See the [PROMPT.txt](./PROMPT.txt) file for detailed configuration instructions
+
 ## 🚀 Live Preview
 [View Live Demo](https://james-tempus.github.io/domo-out-of-stock-alerts/)
 
@@ -65,9 +72,26 @@ domo publish
 ## ⚙️ Configuration
 
 ### Dataset Setup
-1. Create a dataset with the required schema (see PROMPT.txt for details)
-2. Update `manifest.json` with your dataset ID and alias
-3. Configure field mappings in `data-service.js`
+1. **Create a dataset** with the required schema (see PROMPT.txt for details)
+2. **Find your dataset ID** in Domo's dataset management
+3. **Update `manifest.json`** with your actual dataset ID:
+   ```json
+   {
+     "datasetsMapping": [
+       {
+         "alias": "product-alerts",
+         "dataSetId": "YOUR_ACTUAL_DATASET_ID_HERE",
+         "fields": ["product_id", "product_name", "category", ...]
+       }
+     ]
+   }
+   ```
+4. **Redeploy** with `domo publish`
+
+### Current Status
+- **Sample Data**: App currently uses 8 sample product alerts
+- **Real Data**: Requires dataset ID configuration in manifest.json
+- **Fallback**: App gracefully falls back to sample data if dataset unavailable
 
 ### Customization
 - **Summary Boxes**: Modify calculations in `app.js`
