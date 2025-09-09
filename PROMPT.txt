@@ -1,0 +1,373 @@
+# DOMO OUT-OF-STOCK ALERTS APP - COMPLETE DOCUMENTATION & AI PROMPT
+
+## OVERVIEW
+This is a Domo Procode Custom App that displays out-of-stock product alerts in a Tabulator table with acknowledgment functionality. The app integrates with Domo datasets using proper SQL querying and responds to page-level filters.
+
+## APP ARCHITECTURE
+
+### Core Files
+- `index.html` - Main HTML structure with Tabulator integration
+- `app.js` - Main application logic and Tabulator table management
+- `data-service.js` - Data abstraction layer for Domo/local data handling
+- `styles.css` - Custom styling and Tabulator overrides
+- `manifest.json` - Domo app configuration and dataset mapping
+- `thumbnail.png` - App icon (300x300px required)
+
+### Key Dependencies
+- **Tabulator 6.3.1** - Table library (CDN: cdn.jsdelivr.net)
+- **Domo JS API** - For dataset querying and filter listening
+- **Python HTTP Server** - For local development (port 8080)
+
+## FUNCTIONALITY
+
+### Primary Features
+1. **Data Display**: Shows product alerts in a responsive Tabulator table
+2. **Acknowledgment System**: Checkbox-based acknowledgment with AppDB persistence
+3. **Filter Integration**: Responds to page-level Domo filters automatically
+4. **Summary Statistics**: Real-time counts (Total, Acknowledged, Pending)
+5. **View Toggle**: Switch between Pending, Acknowledged, and All Items
+6. **Real-time Updates**: Auto-refresh on filter changes and data updates
+
+### Data Flow
+1. App loads → DataService detects environment (Domo vs local)
+2. Production: Queries Domo dataset with SQL via `domo.query()`
+3. Development: Uses fallback sample data
+4. Filters applied → Converts to SQL WHERE clauses
+5. Data displayed in Tabulator table with acknowledgment checkboxes
+6. User interactions → AppDB storage → Auto-sync to datasets
+
+## DATASET CONFIGURATION
+
+### Required Dataset Schema
+The app expects a dataset with these columns (case-sensitive):
+```sql
+CREATE TABLE product_alerts (
+    product_id VARCHAR(50) PRIMARY KEY,
+    product_name VARCHAR(255),
+    category VARCHAR(100),
+    current_stock INTEGER,
+    min_threshold INTEGER,
+    last_restock DATE,
+    priority VARCHAR(20),
+    status VARCHAR(50),
+    alert_date DATE,
+    supplier VARCHAR(255)
+);
+```
+
+### Manifest Configuration
+Update `manifest.json` for new instances:
+```json
+{
+  "name": "Your App Name",
+  "version": "1.1.0",
+  "description": "Your app description",
+  "main": "index.html",
+  "width": 3,
+  "height": 2,
+  "fileName": "manifest.json",
+  "id": "YOUR_APP_ID_HERE",
+  "datasetsMapping": [
+    {
+      "alias": "your-dataset-alias",
+      "dataSetId": "YOUR_DATASET_ID_HERE",
+      "fields": [
+        "product_id",
+        "product_name", 
+        "category",
+        "current_stock",
+        "min_threshold",
+        "last_restock",
+        "priority",
+        "status",
+        "alert_date",
+        "supplier"
+      ]
+    }
+  ]
+}
+```
+
+### Column Mapping for Different Data Sources
+To adapt for different datasets, update these locations:
+
+1. **manifest.json** - Update `datasetsMapping.fields` array
+2. **data-service.js** - Update `buildSQLQuery()` SELECT clause (lines 310-321)
+3. **data-service.js** - Update `loadDomoData()` transformation mapping (lines 38-52)
+4. **data-service.js** - Update `buildWhereConditions()` column mapping (lines 345-351)
+
+## SUMMARY BOXES CONFIGURATION
+
+### Current Summary Logic
+Located in `app.js` `updateStats()` method (lines ~200-220):
+- **Total**: Count of all items in current dataset
+- **Acknowledged**: Count of items with acknowledged=true
+- **Pending**: Count of items with acknowledged=false
+
+### Customizing Summary Boxes
+To change summary calculations:
+
+1. **Modify `updateStats()` method** in `app.js`:
+```javascript
+updateStats() {
+    const total = this.sampleData.length;
+    const acknowledged = this.sampleData.filter(item => 
+        this.acknowledgedAlerts.has(item.productId)
+    ).length;
+    const pending = total - acknowledged;
+    
+    // Add custom calculations here
+    const highPriority = this.sampleData.filter(item => 
+        item.priority === 'high'
+    ).length;
+    
+    // Update DOM elements
+    document.getElementById('total-count').textContent = total;
+    document.getElementById('acknowledged-count').textContent = acknowledged;
+    document.getElementById('pending-count').textContent = pending;
+}
+```
+
+2. **Update HTML structure** in `index.html` if adding new summary boxes
+3. **Update CSS** in `styles.css` for new box styling
+
+## FILTER SYSTEM
+
+### Domo Filter Integration
+The app uses proper Domo JS API methods:
+- `domo.onFiltersUpdate()` - Listens for page filter changes
+- `domo.onDataUpdate()` - Listens for dataset updates
+- `domo.filterContainer()` - Creates programmatic filters
+- `domo.query()` - Executes SQL queries with filters
+
+### Supported Filter Types
+- **IN**: Multiple values (categories, priorities)
+- **EQUALS**: Exact matches
+- **CONTAINS**: Text search with wildcards
+- **BETWEEN**: Range filters (stock levels, dates)
+- **GREATER_THAN/LESS_THAN**: Numeric comparisons
+
+### Creating Filters Programmatically
+```javascript
+// In app.js or data-service.js
+dataService.createCategoryFilter(['Electronics', 'Office Supplies']);
+dataService.createPriorityFilter(['high']);
+dataService.createStatusFilter(['out-of-stock']);
+dataService.createStockRangeFilter(0, 10);
+dataService.createProductNameFilter('Bluetooth');
+```
+
+## TABULATOR CONFIGURATION
+
+### Current Table Setup
+- **Version**: 6.3.1 (CDN: cdn.jsdelivr.net)
+- **Layout**: fitColumns with responsive design
+- **Height**: 400px (required for Virtual DOM)
+- **Sorting**: Enabled on all columns
+- **Filtering**: Internal app filtering (Pending/Acknowledged/All)
+
+### Column Configuration
+Located in `app.js` `initializeTable()` method (lines 47-150):
+
+```javascript
+columns: [
+    {
+        title: "Product ID",
+        field: "productId",
+        width: 120,
+        headerWordWrap: true
+    },
+    {
+        title: "Product Name", 
+        field: "productName",
+        width: 200,
+        headerWordWrap: true
+    },
+    // ... more columns
+    {
+        title: "Acknowledged",
+        field: "acknowledged",
+        width: 130,
+        formatter: "tickCross",
+        hozAlign: "center",
+        headerHozAlign: "left"
+    }
+]
+```
+
+### Customizing Columns
+1. **Add/Remove columns**: Modify the columns array
+2. **Change field mappings**: Update `field` property
+3. **Adjust widths**: Modify `width` property
+4. **Change formatters**: Update `formatter` property
+5. **Update alignment**: Modify `hozAlign` and `headerHozAlign`
+
+### Tabulator Documentation
+- **Official Docs**: https://tabulator.info/docs
+- **Formatters**: https://tabulator.info/docs/6.3/format
+- **Column Types**: https://tabulator.info/docs/6.3/columns
+- **Responsive Design**: https://tabulator.info/docs/6.3/layout
+
+## STYLING CUSTOMIZATION
+
+### CSS Structure
+- **Domo Branding**: Neutral colors, clean fonts
+- **Summary Cards**: Light grey with color-coded top borders
+- **Table Styling**: Clean white background, subtle borders
+- **Responsive Design**: Adapts to different screen sizes
+
+### Key CSS Classes
+- `.stats-container` - Summary boxes container
+- `.stat-card` - Individual summary boxes
+- `.table-container` - Table wrapper
+- `.tabulator` - Table styling overrides
+
+### Color Scheme
+- **Background**: Transparent/white
+- **Summary Cards**: Light grey (#f8f9fa)
+- **Acknowledged Border**: Green (#28a745)
+- **Pending Border**: Red (#dc3545)
+- **Table Headers**: Light grey (#e9ecef)
+
+## DEPLOYMENT PROCESS
+
+### Local Development
+1. Start Python server: `python3 -m http.server 8080 --bind 127.0.0.1`
+2. Access: `http://127.0.0.1:8080`
+3. Uses fallback sample data
+4. Filter listening disabled in development
+
+### Domo Deployment
+1. Update `manifest.json` with correct dataset ID and alias
+2. Deploy via Domo CLI: `domo publish`
+3. Create cards from Asset Library
+4. Configure dataset permissions
+
+### Required Domo Permissions
+- **Dataset Read**: Access to source dataset
+- **AppDB Write**: Create/update/delete acknowledgments
+- **Filter Access**: Read page-level filters
+
+## APPDB INTEGRATION
+
+### Collection Structure
+```javascript
+{
+    productId: "PROD-001",
+    productName: "Product Name",
+    acknowledgedAt: "2024-01-20T10:30:00.000Z",
+    acknowledgedBy: "user@company.com"
+}
+```
+
+### API Endpoints Used
+- **Save**: `POST /data/v1/appdb/acknowledged-alerts`
+- **Load**: `GET /data/v1/appdb/acknowledged-alerts`
+- **Delete**: `DELETE /data/v1/appdb/acknowledged-alerts/{documentId}`
+- **Export**: `POST /data/v1/appdb/acknowledged-alerts/export`
+
+### Sync Configuration
+AppDB collections can be synced to datasets via manifest:
+```json
+{
+  "syncEnabled": true,
+  "syncConfig": {
+    "collections": [
+      {
+        "collectionName": "acknowledged-alerts",
+        "targetDatasetId": "YOUR_SYNC_DATASET_ID",
+        "syncFrequency": "realtime",
+        "columnMapping": {
+          "productId": "product_id",
+          "productName": "product_name",
+          "acknowledgedAt": "acknowledged_at",
+          "acknowledgedBy": "acknowledged_by"
+        }
+      }
+    ]
+  }
+}
+```
+
+## TROUBLESHOOTING
+
+### Common Issues
+1. **Table not rendering**: Check Tabulator height is set (400px)
+2. **Filters not working**: Verify `domo.onFiltersUpdate()` is available
+3. **Data not loading**: Check dataset alias and permissions
+4. **AppDB errors**: Verify collection permissions and API endpoints
+
+### Debug Mode
+Enable console logging by checking browser dev tools:
+- Data loading: "Data loaded: X items"
+- Filter changes: "Page filters updated:"
+- SQL queries: "Executing SQL query:"
+- AppDB operations: "Saving acknowledgment to Domo AppDB:"
+
+### Cache Issues
+Update cache-busting parameters in `index.html`:
+```html
+<script src="app.js?v=33"></script>
+<script src="styles.css?v=20"></script>
+```
+
+## CUSTOMIZATION CHECKLIST
+
+### For New Dataset
+- [ ] Update `manifest.json` dataset alias and ID
+- [ ] Map column names in `buildSQLQuery()`
+- [ ] Update data transformation in `loadDomoData()`
+- [ ] Test with sample data first
+- [ ] Verify all columns display correctly
+
+### For New Use Case
+- [ ] Modify summary box calculations
+- [ ] Update table columns and formatters
+- [ ] Change acknowledgment logic if needed
+- [ ] Update AppDB collection structure
+- [ ] Test filter integration
+
+### For New Environment
+- [ ] Update app name and description
+- [ ] Generate new app ID
+- [ ] Configure dataset permissions
+- [ ] Test deployment process
+- [ ] Verify filter listening works
+
+## AI ASSISTANT INSTRUCTIONS
+
+When making changes to this app:
+
+1. **Always update cache versions** in `index.html` after JS/CSS changes
+2. **Test locally first** before deploying to Domo
+3. **Maintain backward compatibility** with existing data structures
+4. **Use proper Domo API methods** (domo.query, domo.onFiltersUpdate, etc.)
+5. **Follow Tabulator 6.3.1 documentation** for table modifications
+6. **Preserve responsive design** and Domo branding
+7. **Update this documentation** when making structural changes
+
+### Key Files to Modify
+- **Data changes**: `data-service.js`
+- **UI changes**: `app.js`, `styles.css`, `index.html`
+- **Configuration**: `manifest.json`
+- **Documentation**: `PROMPT.txt`, `README.md`
+
+### Testing Checklist
+- [ ] Local development works
+- [ ] Domo deployment succeeds
+- [ ] Filters respond correctly
+- [ ] Acknowledgments persist
+- [ ] Summary boxes update
+- [ ] Table displays properly
+- [ ] Responsive design works
+
+## VERSION HISTORY
+- v1.0.0: Initial implementation with basic Tabulator table
+- v1.1.0: Added proper Domo dataset querying and filter listening
+- v1.1.1: Fixed filter listening to use domo.onFiltersUpdate()
+
+## CONTACT & SUPPORT
+- **GitHub Repository**: [Your Repo URL]
+- **Live Preview**: [GitHub Pages URL]
+- **Domo Documentation**: https://developer.domo.com/
+- **Tabulator Documentation**: https://tabulator.info/docs
