@@ -23,17 +23,17 @@ class DataService {
         }
     }
 
-    // Load data from Domo dataset (production) using proper SQL querying
+    // Load data from Domo dataset (production) using standard /data/v2/ API
     async loadDomoData() {
         try {
             console.log('Loading data from Domo dataset alias:', this.datasetAlias);
             
-            // Build SQL query with filters
-            const sqlQuery = this.buildSQLQuery();
-            console.log('Executing SQL query:', sqlQuery);
+            // Build query object following Domo standard pattern
+            const query = this.buildQueryObject();
+            console.log('Executing query:', query);
             
-            // Query the Domo dataset using proper SQL syntax
-            const data = await domo.query(sqlQuery);
+            // Query the Domo dataset using standard /data/v2/ API
+            const data = await domo.get(this.makeQueryString(this.datasetAlias, query));
             
             // Transform Domo data to match our expected format
             return data.map((row, index) => ({
@@ -306,80 +306,72 @@ class DataService {
     }
 
     // Build SQL query with current filters applied
-    buildSQLQuery() {
-        let baseQuery = `SELECT 
-            product_id,
-            product_name,
-            category,
-            current_stock,
-            min_threshold,
-            last_restock,
-            priority,
-            status,
-            alert_date,
-            supplier
-        FROM ${this.datasetAlias}`;
+    // Build query object following Domo standard pattern
+    buildQueryObject() {
+        const query = {
+            "fields": this.getColumnNames()
+        };
         
-        // Add WHERE clause if filters are applied
-        const whereConditions = this.buildWhereConditions();
-        if (whereConditions.length > 0) {
-            baseQuery += ` WHERE ${whereConditions.join(' AND ')}`;
+        // Add filters if any are active
+        if (Object.keys(this.currentFilters).length > 0) {
+            query.filters = this.buildFilterConditions();
         }
         
-        // Add ORDER BY for consistent results
-        baseQuery += ` ORDER BY alert_date DESC, priority DESC`;
+        // Add limit to prevent large result sets
+        query.limit = 1000;
         
-        return baseQuery;
+        return query;
     }
-
-    // Build WHERE conditions from current filters
-    buildWhereConditions() {
-        const conditions = [];
+    
+    // Get column names for the query
+    getColumnNames() {
+        return [
+            'product_id',
+            'product_name', 
+            'category',
+            'current_stock',
+            'min_threshold',
+            'last_restock',
+            'priority',
+            'status',
+            'alert_date',
+            'supplier'
+        ];
+    }
+    
+    // Build filter conditions for the query
+    buildFilterConditions() {
+        const filters = [];
         
-        // Map common filter types to SQL conditions
         Object.keys(this.currentFilters).forEach(filterKey => {
             const filterValue = this.currentFilters[filterKey];
-            
-            if (filterValue && filterValue !== '') {
-                // Map filter keys to database column names
-                const columnMap = {
-                    'category': 'category',
-                    'priority': 'priority',
-                    'status': 'status',
-                    'supplier': 'supplier',
-                    'product_name': 'product_name'
-                };
-                
-                const columnName = columnMap[filterKey] || filterKey;
-                
-                if (Array.isArray(filterValue)) {
-                    // Handle array filters (e.g., multiple categories)
-                    const values = filterValue.map(v => `'${v.replace(/'/g, "''")}'`).join(', ');
-                    conditions.push(`${columnName} IN (${values})`);
-                } else if (typeof filterValue === 'string') {
-                    // Handle string filters
-                    if (filterValue.includes('%') || filterValue.includes('*')) {
-                        // Wildcard search
-                        const searchValue = filterValue.replace(/\*/g, '%').replace(/'/g, "''");
-                        conditions.push(`${columnName} LIKE '${searchValue}'`);
-                    } else {
-                        // Exact match
-                        conditions.push(`${columnName} = '${filterValue.replace(/'/g, "''")}'`);
-                    }
-                } else if (typeof filterValue === 'object' && filterValue.min !== undefined) {
-                    // Handle range filters
-                    if (filterValue.min !== null && filterValue.min !== '') {
-                        conditions.push(`${columnName} >= ${filterValue.min}`);
-                    }
-                    if (filterValue.max !== null && filterValue.max !== '') {
-                        conditions.push(`${columnName} <= ${filterValue.max}`);
-                    }
-                }
+            if (filterValue !== null && filterValue !== undefined) {
+                filters.push({
+                    column: filterKey,
+                    operator: 'EQUALS',
+                    values: [filterValue]
+                });
             }
         });
         
-        return conditions;
+        return filters;
     }
+    
+    // Make query string following Domo standard pattern
+    makeQueryString(datasetAlias, queryObject) {
+        var query = '/data/v2/' + datasetAlias + '?';
+        for (var key in queryObject) {
+            if (queryObject.hasOwnProperty(key)) {
+                var value = queryObject[key];
+                if (typeof value === "object" && value.join != null) {
+                    value = value.join(",");
+                }
+                query += "&" + key + "=" + value;
+            }
+        }
+        return query;
+    }
+
 
     // Set up filter listening for page-level filters using proper Domo JS API
     setupFilterListening() {
