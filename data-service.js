@@ -1,17 +1,21 @@
 // Data Service for Domo Out-of-Stock Alerts App
 // Handles data retrieval from both local SQL (development) and Domo datasets (production)
+// Implements proper Domo dataset querying with SQL and filter listening
 
 class DataService {
     constructor() {
         this.isProduction = typeof domo !== 'undefined';
         this.datasetAlias = 'product-alerts'; // From manifest.json mapping
         this.localData = null;
+        this.currentFilters = {}; // Store current page filters
+        this.filterListeners = []; // Store filter change listeners
     }
 
     // Initialize data service
     async init() {
         if (this.isProduction) {
             console.log('Running in production mode - will use Domo dataset');
+            this.setupFilterListening(); // Set up filter listening
             return await this.loadDomoData();
         } else {
             console.log('Running in development mode - using local sample data');
@@ -19,13 +23,17 @@ class DataService {
         }
     }
 
-    // Load data from Domo dataset (production)
+    // Load data from Domo dataset (production) using proper SQL querying
     async loadDomoData() {
         try {
             console.log('Loading data from Domo dataset alias:', this.datasetAlias);
             
-            // Query the Domo dataset using the alias from manifest.json
-            const data = await domo.get(`/data/v1/${this.datasetAlias}`);
+            // Build SQL query with filters
+            const sqlQuery = this.buildSQLQuery();
+            console.log('Executing SQL query:', sqlQuery);
+            
+            // Query the Domo dataset using proper SQL syntax
+            const data = await domo.query(sqlQuery);
             
             // Transform Domo data to match our expected format
             return data.map((row, index) => ({
@@ -294,6 +302,161 @@ class DataService {
             }
         } else {
             console.log(`Manual sync triggered for collection: ${collectionName} (development mode - no actual sync)`);
+        }
+    }
+
+    // Build SQL query with current filters applied
+    buildSQLQuery() {
+        let baseQuery = `SELECT 
+            product_id,
+            product_name,
+            category,
+            current_stock,
+            min_threshold,
+            last_restock,
+            priority,
+            status,
+            alert_date,
+            supplier
+        FROM ${this.datasetAlias}`;
+        
+        // Add WHERE clause if filters are applied
+        const whereConditions = this.buildWhereConditions();
+        if (whereConditions.length > 0) {
+            baseQuery += ` WHERE ${whereConditions.join(' AND ')}`;
+        }
+        
+        // Add ORDER BY for consistent results
+        baseQuery += ` ORDER BY alert_date DESC, priority DESC`;
+        
+        return baseQuery;
+    }
+
+    // Build WHERE conditions from current filters
+    buildWhereConditions() {
+        const conditions = [];
+        
+        // Map common filter types to SQL conditions
+        Object.keys(this.currentFilters).forEach(filterKey => {
+            const filterValue = this.currentFilters[filterKey];
+            
+            if (filterValue && filterValue !== '') {
+                // Map filter keys to database column names
+                const columnMap = {
+                    'category': 'category',
+                    'priority': 'priority',
+                    'status': 'status',
+                    'supplier': 'supplier',
+                    'product_name': 'product_name'
+                };
+                
+                const columnName = columnMap[filterKey] || filterKey;
+                
+                if (Array.isArray(filterValue)) {
+                    // Handle array filters (e.g., multiple categories)
+                    const values = filterValue.map(v => `'${v.replace(/'/g, "''")}'`).join(', ');
+                    conditions.push(`${columnName} IN (${values})`);
+                } else if (typeof filterValue === 'string') {
+                    // Handle string filters
+                    if (filterValue.includes('%') || filterValue.includes('*')) {
+                        // Wildcard search
+                        const searchValue = filterValue.replace(/\*/g, '%').replace(/'/g, "''");
+                        conditions.push(`${columnName} LIKE '${searchValue}'`);
+                    } else {
+                        // Exact match
+                        conditions.push(`${columnName} = '${filterValue.replace(/'/g, "''")}'`);
+                    }
+                } else if (typeof filterValue === 'object' && filterValue.min !== undefined) {
+                    // Handle range filters
+                    if (filterValue.min !== null && filterValue.min !== '') {
+                        conditions.push(`${columnName} >= ${filterValue.min}`);
+                    }
+                    if (filterValue.max !== null && filterValue.max !== '') {
+                        conditions.push(`${columnName} <= ${filterValue.max}`);
+                    }
+                }
+            }
+        });
+        
+        return conditions;
+    }
+
+    // Set up filter listening for page-level filters
+    setupFilterListening() {
+        if (!this.isProduction) {
+            console.log('Filter listening not available in development mode');
+            return;
+        }
+
+        try {
+            // Listen for filter changes on the page
+            // This uses Domo's filter API to respond to page-level filters
+            domo.on('filter', (filterData) => {
+                console.log('Page filter changed:', filterData);
+                this.handleFilterChange(filterData);
+            });
+
+            // Also listen for specific dataset filters if available
+            domo.on('datasetFilter', (filterData) => {
+                console.log('Dataset filter changed:', filterData);
+                this.handleFilterChange(filterData);
+            });
+
+            console.log('Filter listening setup complete');
+        } catch (error) {
+            console.error('Error setting up filter listening:', error);
+        }
+    }
+
+    // Handle filter changes and update current filters
+    handleFilterChange(filterData) {
+        try {
+            // Update current filters based on the filter data
+            if (filterData && typeof filterData === 'object') {
+                Object.keys(filterData).forEach(key => {
+                    this.currentFilters[key] = filterData[key];
+                });
+                
+                console.log('Updated filters:', this.currentFilters);
+                
+                // Notify listeners that filters have changed
+                this.notifyFilterListeners();
+            }
+        } catch (error) {
+            console.error('Error handling filter change:', error);
+        }
+    }
+
+    // Add a listener for filter changes
+    addFilterListener(callback) {
+        this.filterListeners.push(callback);
+    }
+
+    // Remove a filter listener
+    removeFilterListener(callback) {
+        const index = this.filterListeners.indexOf(callback);
+        if (index > -1) {
+            this.filterListeners.splice(index, 1);
+        }
+    }
+
+    // Notify all filter listeners
+    notifyFilterListeners() {
+        this.filterListeners.forEach(callback => {
+            try {
+                callback(this.currentFilters);
+            } catch (error) {
+                console.error('Error in filter listener callback:', error);
+            }
+        });
+    }
+
+    // Refresh data with current filters
+    async refreshData() {
+        if (this.isProduction) {
+            return await this.loadDomoData();
+        } else {
+            return await this.loadLocalData();
         }
     }
 }

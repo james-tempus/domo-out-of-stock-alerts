@@ -21,6 +21,9 @@ class OutOfStockAlertsApp {
             this.acknowledgedAlerts = await this.dataService.loadAcknowledgedAlerts();
             console.log('Acknowledged alerts loaded:', this.acknowledgedAlerts.size, 'items');
             
+            // Set up filter listening for page-level filters
+            this.setupFilterListening();
+            
             this.setupEventListeners();
             this.initializeTable();
             this.updateStats();
@@ -288,6 +291,28 @@ class OutOfStockAlertsApp {
                 acknowledgedAt: new Date().toISOString()
             };
         });
+    }
+
+    // Set up filter listening for page-level filters
+    setupFilterListening() {
+        // Add a listener for filter changes from the data service
+        this.dataService.addFilterListener(async (filters) => {
+            console.log('Page filters changed, refreshing data:', filters);
+            
+            try {
+                // Refresh data with new filters
+                this.sampleData = await this.dataService.refreshData();
+                console.log('Data refreshed with filters:', this.sampleData.length, 'items');
+                
+                // Update the table with new data
+                this.updateTableData();
+                this.updateStats();
+            } catch (error) {
+                console.error('Error refreshing data with filters:', error);
+            }
+        });
+        
+        console.log('Filter listening setup complete');
     }
 }
 
