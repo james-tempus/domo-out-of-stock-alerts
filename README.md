@@ -114,6 +114,14 @@ The app is configured with `syncEnabled: true` to automatically sync acknowledgm
 ### Benefits of AppDB Sync
 - **Real-time Data**: Acknowledgments are immediately available in datasets for reporting
 - **Security Compliant**: Uses Domo's official sync mechanism (no direct dataset writes from apps)
-- **Automatic**: No manual intervention required - sync happens automatically
+- **Automatic + Manual**: Both automatic sync and manual trigger capabilities
 - **Governance**: Maintains data integrity and access controls
 - **Reporting Ready**: Synced data can be used in dashboards, cards, and other Domo features
+
+### Manual Sync API
+The app includes manual sync functionality that triggers immediate export of AppDB collections to datasets:
+
+- **API Endpoint**: `/data/v1/collections/{collectionName}/export`
+- **Triggered**: Automatically after each acknowledgment save/remove
+- **Fallback**: Graceful error handling - sync failures don't break the app
+- **Development**: Simulated in local development mode

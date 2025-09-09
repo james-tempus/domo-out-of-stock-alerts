@@ -197,6 +197,9 @@ class DataService {
                 // Use Domo's AppDB collection API
                 await domo.post('/data/v1/collections/acknowledged-alerts', acknowledgmentData);
                 console.log('Acknowledgment saved to AppDB collection');
+                
+                // Trigger manual sync to dataset (if syncEnabled is true in manifest)
+                await this.triggerCollectionSync('acknowledged-alerts');
             } catch (error) {
                 console.error('Error saving to AppDB:', error);
                 throw error;
@@ -227,6 +230,9 @@ class DataService {
                 // Use Domo's AppDB collection API with query parameter
                 await domo.delete(`/data/v1/collections/acknowledged-alerts?productId=${productId}`);
                 console.log('Acknowledgment removed from AppDB collection');
+                
+                // Trigger manual sync to dataset (if syncEnabled is true in manifest)
+                await this.triggerCollectionSync('acknowledged-alerts');
             } catch (error) {
                 console.error('Error removing from AppDB:', error);
                 throw error;
@@ -259,6 +265,24 @@ class DataService {
             
             const data = JSON.parse(localStorage.getItem('acknowledgedAlerts') || '[]');
             return new Set(data.map(item => item.productId));
+        }
+    }
+
+    // Trigger manual sync of AppDB collection to dataset
+    async triggerCollectionSync(collectionName) {
+        if (this.isProduction) {
+            try {
+                console.log(`Triggering manual sync for collection: ${collectionName}`);
+                
+                // Use Domo's manual export API to force sync to dataset
+                await domo.post(`/data/v1/collections/${collectionName}/export`);
+                console.log(`Manual sync triggered for collection: ${collectionName}`);
+            } catch (error) {
+                console.error(`Error triggering sync for collection ${collectionName}:`, error);
+                // Don't throw error - sync failure shouldn't break the app
+            }
+        } else {
+            console.log(`Manual sync triggered for collection: ${collectionName} (development mode - no actual sync)`);
         }
     }
 }
