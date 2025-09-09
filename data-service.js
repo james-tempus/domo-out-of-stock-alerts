@@ -4,58 +4,90 @@
 
 class DataService {
     constructor() {
-        this.isProduction = typeof domo !== 'undefined';
+        this.isProduction = this.checkDomoEnvironment();
         this.datasetAlias = 'product-alerts'; // From manifest.json mapping
         this.localData = null;
         this.currentFilters = {}; // Store current page filters
         this.filterListeners = []; // Store filter change listeners
     }
 
+    // Check if we're actually running in a Domo environment
+    checkDomoEnvironment() {
+        try {
+            // Check if domo exists and has the expected methods
+            if (typeof domo === 'undefined' || domo === null) {
+                console.log('Domo object not found, using local mode');
+                return false;
+            }
+            
+            // Check if we're actually in a Domo environment by testing if we can make API calls
+            // The most reliable way is to check if we're on a Domo domain
+            const isDomoDomain = window.location.hostname.includes('domo.com') || 
+                                window.location.hostname.includes('domo');
+            
+            if (!isDomoDomain) {
+                console.log('Not on Domo domain, using local mode');
+                return false;
+            }
+            
+            // Additional check: try to access a Domo-specific method that should exist
+            if (typeof domo.get !== 'function') {
+                console.log('Domo.get method not available, using local mode');
+                return false;
+            }
+            
+            console.log('Domo environment detected, using production mode');
+            return true;
+        } catch (error) {
+            console.log('Domo not available, using local mode:', error.message);
+            return false;
+        }
+    }
+
     // Initialize data service
     async init() {
+        console.log('DataService init() called');
+        console.log('isProduction:', this.isProduction);
+        
         if (this.isProduction) {
             console.log('Running in production mode - will use Domo dataset');
             this.setupFilterListening(); // Set up filter listening
             return await this.loadDomoData();
         } else {
             console.log('Running in development mode - using local sample data');
-            return await this.loadLocalData();
+            const data = await this.loadLocalData();
+            console.log('Local data loaded:', data.length, 'items');
+            return data;
         }
     }
 
     // Load data from Domo dataset (production) using standard /data/v2/ API
     async loadDomoData() {
-        try {
-            console.log('Loading data from Domo dataset alias:', this.datasetAlias);
-            
-            // Build query object following Domo standard pattern
-            const query = this.buildQueryObject();
-            console.log('Executing query:', query);
-            
-            // Query the Domo dataset using standard /data/v2/ API
-            const data = await domo.get(this.makeQueryString(this.datasetAlias, query));
-            
-            // Transform Domo data to match our expected format
-            return data.map((row, index) => ({
-                id: row.id || index + 1,
-                productId: row.product_id || row.productId,
-                productName: row.product_name || row.productName,
-                category: row.category,
-                currentStock: row.current_stock || row.currentStock,
-                minThreshold: row.min_threshold || row.minThreshold,
-                lastRestock: row.last_restock || row.lastRestock,
-                priority: row.priority,
-                status: row.status,
-                alertDate: row.alert_date || row.alertDate,
-                supplier: row.supplier,
-                acknowledged: row.acknowledged || false
-            }));
-        } catch (error) {
-            console.error('Error loading Domo data:', error);
-            // Fallback to local data if Domo query fails
-            console.log('Falling back to local sample data');
-            return await this.loadLocalData();
-        }
+        console.log('Loading data from Domo dataset alias:', this.datasetAlias);
+        
+        // Build query object following Domo standard pattern
+        const query = this.buildQueryObject();
+        console.log('Executing query:', query);
+        
+        // Query the Domo dataset using standard /data/v2/ API
+        // Let any errors bubble up so we can see what's wrong in Domo
+        const data = await domo.get(this.makeQueryString(this.datasetAlias, query));
+        
+        // Transform Domo data to match our expected format
+        return data.map((row, index) => ({
+            id: row.id || index + 1,
+            productId: row.product_id || row.productId,
+            productName: row.product_name || row.productName,
+            category: row.category,
+            currentStock: row.current_stock || row.currentStock,
+            minThreshold: row.min_threshold || row.minThreshold,
+            lastRestock: row.last_restock || row.lastRestock,
+            priority: row.priority,
+            status: row.status,
+            alertDate: row.alert_date || row.alertDate,
+            supplier: row.supplier,
+            acknowledged: row.acknowledged || false
+        }));
     }
 
     // Load local sample data (development)
@@ -64,10 +96,14 @@ class DataService {
             // In development mode, use fallback sample data
             // In a real implementation, you might use a local SQLite database
             console.log('Using fallback sample data for development');
-            return this.getFallbackData();
+            const data = this.getFallbackData();
+            console.log('getFallbackData() returned:', data.length, 'items');
+            return data;
         } catch (error) {
             console.error('Error loading local data:', error);
-            return this.getFallbackData();
+            const data = this.getFallbackData();
+            console.log('getFallbackData() fallback returned:', data.length, 'items');
+            return data;
         }
     }
 
@@ -192,26 +228,21 @@ class DataService {
     // Save acknowledgment to Domo AppDB (production)
     async saveAcknowledgment(productData) {
         if (this.isProduction) {
-            try {
-                console.log('Saving acknowledgment to Domo AppDB:', productData.productId);
-                
-                const acknowledgmentData = {
-                    productId: productData.productId,
-                    productName: productData.productName,
-                    acknowledgedAt: new Date().toISOString(),
-                    acknowledgedBy: 'user' // In production, get actual user ID
-                };
+            console.log('Saving acknowledgment to Domo AppDB:', productData.productId);
+            
+            const acknowledgmentData = {
+                productId: productData.productId,
+                productName: productData.productName,
+                acknowledgedAt: new Date().toISOString(),
+                acknowledgedBy: 'user' // In production, get actual user ID
+            };
 
-                // Use Domo's AppDB API
-                await domo.post('/data/v1/appdb/acknowledged-alerts', acknowledgmentData);
-                console.log('Acknowledgment saved to AppDB collection');
-                
-                // Trigger manual sync to dataset (if syncEnabled is true in manifest)
-                await this.triggerCollectionSync('acknowledged-alerts');
-            } catch (error) {
-                console.error('Error saving to AppDB:', error);
-                throw error;
-            }
+            // Use Domo's AppDB API - let errors bubble up
+            await domo.post('/data/v1/appdb/acknowledged-alerts', acknowledgmentData);
+            console.log('Acknowledgment saved to AppDB collection');
+            
+            // Trigger manual sync to dataset (if syncEnabled is true in manifest)
+            await this.triggerCollectionSync('acknowledged-alerts');
         } else {
             // Development mode - use localStorage
             console.log('Saving acknowledgment to localStorage:', productData.productId);
@@ -232,27 +263,22 @@ class DataService {
     // Remove acknowledgment from Domo AppDB (production)
     async removeAcknowledgment(productId) {
         if (this.isProduction) {
-            try {
-                console.log('Removing acknowledgment from Domo AppDB:', productId);
-                
-                // First, get the document ID for the productId
-                const existingData = await domo.get('/data/v1/appdb/acknowledged-alerts');
-                const documentToDelete = existingData.find(item => item.productId === productId);
-                
-                if (documentToDelete && documentToDelete._id) {
-                    // Use Domo's AppDB API to delete by document ID
-                    await domo.delete(`/data/v1/appdb/acknowledged-alerts/${documentToDelete._id}`);
-                    console.log('Acknowledgment removed from AppDB collection');
-                } else {
-                    console.log('No acknowledgment found to remove for productId:', productId);
-                }
-                
-                // Trigger manual sync to dataset (if syncEnabled is true in manifest)
-                await this.triggerCollectionSync('acknowledged-alerts');
-            } catch (error) {
-                console.error('Error removing from AppDB:', error);
-                throw error;
+            console.log('Removing acknowledgment from Domo AppDB:', productId);
+            
+            // First, get the document ID for the productId
+            const existingData = await domo.get('/data/v1/appdb/acknowledged-alerts');
+            const documentToDelete = existingData.find(item => item.productId === productId);
+            
+            if (documentToDelete && documentToDelete._id) {
+                // Use Domo's AppDB API to delete by document ID - let errors bubble up
+                await domo.delete(`/data/v1/appdb/acknowledged-alerts/${documentToDelete._id}`);
+                console.log('Acknowledgment removed from AppDB collection');
+            } else {
+                console.log('No acknowledgment found to remove for productId:', productId);
             }
+            
+            // Trigger manual sync to dataset (if syncEnabled is true in manifest)
+            await this.triggerCollectionSync('acknowledged-alerts');
         } else {
             // Development mode - use localStorage
             console.log('Removing acknowledgment from localStorage:', productId);
@@ -266,15 +292,11 @@ class DataService {
     // Load acknowledged alerts from storage
     async loadAcknowledgedAlerts() {
         if (this.isProduction) {
-            try {
-                console.log('Loading acknowledged alerts from Domo AppDB collection');
-                
-                const data = await domo.get('/data/v1/appdb/acknowledged-alerts');
-                return new Set(data.map(item => item.productId));
-            } catch (error) {
-                console.error('Error loading acknowledged alerts from AppDB:', error);
-                return new Set();
-            }
+            console.log('Loading acknowledged alerts from Domo AppDB collection');
+            
+            // Let errors bubble up so we can see what's wrong in Domo
+            const data = await domo.get('/data/v1/appdb/acknowledged-alerts');
+            return new Set(data.map(item => item.productId));
         } else {
             // Development mode - use localStorage
             console.log('Loading acknowledged alerts from localStorage');

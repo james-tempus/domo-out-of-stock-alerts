@@ -13,9 +13,12 @@ class OutOfStockAlertsApp {
 
     async init() {
         try {
+            console.log('App init() called');
+            
             // Load data from data service (Domo dataset or local)
             this.sampleData = await this.dataService.init();
             console.log('Data loaded:', this.sampleData.length, 'items');
+            console.log('Sample data:', this.sampleData);
             
             // Load acknowledged alerts from storage
             this.acknowledgedAlerts = await this.dataService.loadAcknowledgedAlerts();
@@ -155,7 +158,9 @@ class OutOfStockAlertsApp {
                         const checkbox = e.target;
                         if (checkbox.classList.contains('acknowledgment-checkbox')) {
                             e.stopPropagation();
-                            this.handleAcknowledgment(checkbox);
+                            const row = cell.getRow().getData();
+                            const isAcknowledged = checkbox.checked;
+                            this.handleAcknowledgment(row.productId, isAcknowledged, row);
                         }
                     }
                 }
