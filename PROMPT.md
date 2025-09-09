@@ -365,8 +365,11 @@ When making changes to this app:
 5. **Follow Tabulator 6.3.1 documentation** for table modifications
 6. **Preserve responsive design** and Domo branding
 7. **Update this documentation** when making structural changes
-8. **Use .md extension** for documentation files (Domo truncates large .txt files)
-9. **Test file downloads** with `domo download` to verify content integrity
+8. **Remember: Deleting files locally does NOT remove them from Domo**
+9. **Always verify what files are actually in Domo using `domo download`**
+10. **Clean up old files manually in Domo UI if needed**
+11. **Use .md extension** for documentation files (Domo truncates large .txt files)
+12. **Test file downloads** with `domo download` to verify content integrity
 
 ### Key Files to Modify
 - **Data changes**: `data-service.js`
@@ -439,6 +442,14 @@ When making changes to this app:
 - **Recommendation**: Use .md extension for all documentation files
 - **Tested**: PROMPT.txt (15KB) → 0 bytes, PROMPT.md (15KB) → full content
 - **Workaround**: Rename large .txt files to .md before publishing
+
+**CRITICAL: File Deletion Behavior**
+- **Deleting files locally does NOT remove them from Domo**
+- **Domo CLI `domo publish` only uploads/updates files, never deletes**
+- **Old files persist in Domo design even after local deletion**
+- **Workaround**: Manually delete files in Domo UI or create new design
+- **Verification**: Use `domo download` to check what files are actually in Domo
+- **Best Practice**: Keep local directory clean and republish to sync
 
 ### Domo Pro Code Editor File Support
 **Supported File Types in Domo Editor:**
