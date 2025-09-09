@@ -462,6 +462,63 @@ When making changes to this app:
 - **README.md**: text/markdown, text/plain
 - **thumbnail.png**: image/png
 
+### Domo Example App Structure Analysis
+**Generated from `domo init` command with starter kits:**
+
+**Available Starter Kits:**
+- `hello world`: Basic HTML/JS app with minimal structure
+- `basic chart`: Phoenix chart integration with data querying
+- `map chart`: Map visualization with geographic data
+- `sugarforce`: Salesforce integration example
+- `manifest only`: Minimal manifest-only app
+
+**Standard Domo App Structure:**
+```
+app-name/
+├── manifest.json          # App configuration
+├── index.html            # Main HTML file
+├── app.js               # Main JavaScript logic
+├── app.css              # Styling (optional)
+└── thumbnail.png        # App icon (300x300px)
+```
+
+**Example Manifest Structure (from Domo CLI):**
+```json
+{
+  "name": "app-name",
+  "version": "1.0.0",
+  "size": {
+    "width": 1,
+    "height": 1
+  },
+  "mapping": []
+}
+```
+
+**Key Differences from Our App:**
+- **Standard manifests** use `size` object instead of `width`/`height` directly
+- **Standard manifests** use `mapping` array instead of `datasetsMapping`
+- **No additional fields** like `description`, `main`, `fileName`, `id` in examples
+- **Minimal structure** focuses on core functionality
+
+**Data Querying Patterns from Examples:**
+- **API Endpoint**: `/data/v2/{datasetAlias}?` (not `/data/v1/`)
+- **Query Structure**: Uses query object with fields, groupby, dategrain
+- **Limit Parameter**: `&limit=1000` to prevent large result sets
+- **Helper Functions**: `makeQueryString()`, `getColumnNames()`, `processGrains()`
+- **Error Handling**: `displayError()` function for data loading failures
+
+**Example Data Query Pattern:**
+```javascript
+function getData(datasetAlias, columns){
+  var query = {
+    "fields": getColumnNames(columns)
+  };
+  processGrains(columns, query);
+  return domo.get(makeQueryString(datasetAlias, query) + '&limit=1000');
+}
+```
+
 ### Source Data & References Used
 - **Sample Data**: 8 product alerts with various categories and priorities
 - **Data Types**: Electronics, Food & Beverage, Home & Kitchen, Sports & Fitness, Clothing, Health & Wellness, Office Supplies
