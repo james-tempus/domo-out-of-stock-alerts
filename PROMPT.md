@@ -495,11 +495,18 @@ app-name/
 }
 ```
 
-**Key Differences from Our App:**
-- **Standard manifests** use `size` object instead of `width`/`height` directly
-- **Standard manifests** use `mapping` array instead of `datasetsMapping`
-- **No additional fields** like `description`, `main`, `fileName`, `id` in examples
-- **Minimal structure** focuses on core functionality
+**Key Differences from Our App (UPDATED):**
+- **Standard manifests** use `size` object instead of `width`/`height` directly ✅ **FIXED**
+- **Standard manifests** use `mapping` array instead of `datasetsMapping` ✅ **FIXED**
+- **No additional fields** like `description`, `main`, `fileName`, `id` in examples ✅ **FIXED**
+- **Minimal structure** focuses on core functionality ✅ **FIXED**
+
+**Our App Now Follows Domo Standards:**
+- **Manifest**: Uses standard `size` object and `mapping` array
+- **Data API**: Uses `/data/v2/` endpoint with query object pattern
+- **HTML Structure**: Simplified to match Domo examples
+- **Helper Functions**: Implements standard `makeQueryString()`, `getColumnNames()` patterns
+- **Domo Utils**: Includes `ryuu.js` for standard Domo functionality
 
 **Data Querying Patterns from Examples:**
 - **API Endpoint**: `/data/v2/{datasetAlias}?` (not `/data/v1/`)
@@ -518,6 +525,33 @@ function getData(datasetAlias, columns){
   return domo.get(makeQueryString(datasetAlias, query) + '&limit=1000');
 }
 ```
+
+### App Updates to Follow Domo Standards (v1.3.0)
+**Changes Made:**
+1. **Manifest.json**: Updated to standard format
+   - Changed `width`/`height` to `size: {width: 3, height: 2}`
+   - Changed `datasetsMapping` to `mapping: []`
+   - Removed non-standard fields (`description`, `main`, `fileName`, `id`)
+   - Updated version to 1.3.0
+
+2. **Data Service**: Updated to use `/data/v2/` API
+   - Replaced `domo.query()` with `domo.get()` using `/data/v2/` endpoint
+   - Added `buildQueryObject()` method following Domo patterns
+   - Added `getColumnNames()` helper function
+   - Added `makeQueryString()` helper function
+   - Removed old `buildSQLQuery()` and `buildWhereConditions()` methods
+
+3. **HTML Structure**: Simplified to match Domo examples
+   - Removed DOCTYPE and meta tags
+   - Added `ryuu.js` Domo utility library
+   - Simplified script loading order
+   - Updated cache version to v34
+
+4. **Code Patterns**: Now follows Domo standards
+   - Uses standard query object structure
+   - Implements proper error handling
+   - Follows Domo naming conventions
+   - Uses standard helper function patterns
 
 ### Source Data & References Used
 - **Sample Data**: 8 product alerts with various categories and priorities
