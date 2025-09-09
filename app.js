@@ -47,6 +47,7 @@ class OutOfStockAlertsApp {
             data: this.getFilteredData(),
             height: "400px",
             layout: "fitColumns",
+            responsiveLayout: "hide",
             columns: [
                 {
                     title: "Product ID",
@@ -58,8 +59,11 @@ class OutOfStockAlertsApp {
                     title: "Product Name",
                     field: "productName",
                     width: 200,
+                    widthGrow: 2,
+                    widthShrink: 1,
                     sorter: "string",
-                    headerWordWrap: true
+                    headerWordWrap: true,
+                    responsive: 0
                 },
                 {
                     title: "Category",
@@ -71,10 +75,13 @@ class OutOfStockAlertsApp {
                     title: "Current Stock",
                     field: "currentStock",
                     width: 120,
+                    widthGrow: 1,
+                    widthShrink: 1,
                     sorter: "number",
                     headerWordWrap: true,
                     headerHozAlign: "left",
                     hozAlign: "center",
+                    responsive: 1,
                     formatter: (cell) => {
                         const value = cell.getValue();
                         const row = cell.getRow().getData();
@@ -99,9 +106,12 @@ class OutOfStockAlertsApp {
                     title: "Priority",
                     field: "priority",
                     width: 100,
+                    widthGrow: 1,
+                    widthShrink: 1,
                     sorter: "string",
                     headerHozAlign: "left",
                     hozAlign: "center",
+                    responsive: 2,
                     formatter: (cell) => {
                         const value = cell.getValue();
                         const className = `priority-${value}`;
@@ -138,9 +148,12 @@ class OutOfStockAlertsApp {
                     title: "Acknowledged",
                     field: "acknowledged",
                     width: 130,
+                    widthGrow: 1,
+                    widthShrink: 1,
                     headerWordWrap: true,
                     headerHozAlign: "left",
                     hozAlign: "center",
+                    responsive: 3,
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
                         const isAcknowledged = this.acknowledgedAlerts.has(row.productId);
