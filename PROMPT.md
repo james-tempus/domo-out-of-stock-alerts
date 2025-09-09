@@ -314,6 +314,8 @@ AppDB collections can be synced to datasets via manifest:
 2. **Filters not working**: Verify `domo.onFiltersUpdate()` is available
 3. **Data not loading**: Check dataset alias and permissions
 4. **AppDB errors**: Verify collection permissions and API endpoints
+5. **Files not visible in Domo Editor**: Check file extensions and MIME types
+6. **Documentation files empty**: Use .md extension instead of .txt for large files
 
 ### Debug Mode
 Enable console logging by checking browser dev tools:
@@ -437,6 +439,28 @@ When making changes to this app:
 - **Recommendation**: Use .md extension for all documentation files
 - **Tested**: PROMPT.txt (15KB) → 0 bytes, PROMPT.md (15KB) → full content
 - **Workaround**: Rename large .txt files to .md before publishing
+
+### Domo Pro Code Editor File Support
+**Supported File Types in Domo Editor:**
+- **General files**: bash, bat, clj, cljc, cljs, cmd, css, csv, edn, go, gql, graphql, html, java, js, json, jsx, kt, kts, less, markdown, md, php, ps1, py, r, rb, scss, sh, sql, swift, ts, tsv, tsx, txt, xml, yaml, yml
+- **Image files**: bmp, eps, gif, ico, jpeg, jpg, png, svg, tif, tiff, webp
+- **MIME types**: Domo uses specific MIME type detection for file handling
+
+**File Visibility Issues:**
+- **Some files may not appear** in Domo Pro Code Editor due to MIME type detection
+- **JSON/JS files**: Should be visible with proper MIME types (application/json, application/javascript)
+- **Markdown files**: Supported with text/markdown MIME type
+- **Recommendation**: Use standard file extensions and ensure proper MIME type detection
+
+**App-Specific MIME Types:**
+- **app.js**: application/javascript, text/javascript
+- **data-service.js**: application/javascript, text/javascript
+- **index.html**: text/html, application/html
+- **manifest.json**: application/json, text/json
+- **styles.css**: text/css
+- **PROMPT.md**: text/markdown, text/plain
+- **README.md**: text/markdown, text/plain
+- **thumbnail.png**: image/png
 
 ### Source Data & References Used
 - **Sample Data**: 8 product alerts with various categories and priorities
