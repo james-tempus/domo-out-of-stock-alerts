@@ -33,7 +33,7 @@ A clean, minimal Domo Procode app for managing out-of-stock product alerts with 
 
 ## Sample Data
 
-- **Development**: Uses `sample-data.js` for local testing
+- **Development**: Uses fallback data in `data-service.js` for local testing
 - **SQL Structure**: `sample-data.sql` contains the database schema and sample data
 - **Production**: Connects to Domo dataset specified in `manifest.json`
 - **Data Service**: Automatically switches between local and Domo data sources
