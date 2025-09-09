@@ -128,7 +128,7 @@ body {
     color: #495057;
     font-weight: 600;
     font-size: 12px;
-    padding: 12px 8px;
+    padding: 4px 8px; /* Reduced from 12px to 4px (67% reduction) */
 }
 
 .tabulator .tabulator-header .tabulator-col:hover {
@@ -159,41 +159,56 @@ body {
     color: #333;
 }
 
-/* Reduce padding between header text and sorting arrow using proper Tabulator selectors */
-.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
-    padding-right: 1px;
+/* Remove border from Acknowledged column using multiple selectors */
+.tabulator .tabulator-header .tabulator-col:nth-child(10),
+.tabulator .tabulator-row .tabulator-cell:nth-child(10),
+.tabulator .tabulator-header .tabulator-col:last-of-type,
+.tabulator .tabulator-row .tabulator-cell:last-of-type,
+.tabulator .tabulator-header .tabulator-col[tabulator-field="acknowledged"],
+.tabulator .tabulator-row .tabulator-cell[tabulator-field="acknowledged"] {
+    border-right: none !important;
 }
 
-.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
-    margin-right: 0;
-    padding-right: 0;
+/* Remove border from Acknowledged column using multiple selectors */
+
+/* Restore Tabulator's default sorting arrow positioning */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-sorter {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-arrow {
+    position: absolute !important;
+}
+
+/* High-specificity fix for Tabulator sorting arrows based on official docs */
+.tabulator .tabulator-header .tabulator-col {
+    position: relative;
 }
 
 .tabulator .tabulator-header .tabulator-col .tabulator-col-sorter {
-    margin-left: 0;
-    padding-left: 0;
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    display: block;
 }
 
-/* Specific fix for the Acknowledged column (rightmost column) */
-.tabulator .tabulator-header .tabulator-col:last-child .tabulator-col-content {
-    padding-right: 2px;
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+    padding-right: 20px; /* Ensure space for the arrow */
 }
 
-.tabulator .tabulator-header .tabulator-col:last-child .tabulator-col-title {
-    margin-right: 1px;
+/* Force header text to wrap using the official selector from Tabulator docs */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+    white-space: normal;
 }
 
 /* Priority styling */
 .priority-high {
     color: #dc3545 !important;
     font-weight: 600 !important;
-}
-
-/* Column header vertical centering */
-.tabulator .tabulator-header .tabulator-col .tabulator-col-content {
-    display: flex;
-    align-items: center;
-    height: 100%;
 }
 
 .priority-medium {
@@ -351,3 +366,4 @@ body {
     border: 1px solid #f5c6cb;
     display: none;
 }
+

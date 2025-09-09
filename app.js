@@ -47,41 +47,38 @@ class OutOfStockAlertsApp {
             data: this.getFilteredData(),
             height: "400px",
             layout: "fitColumns",
-            responsiveLayout: "hide",
+            columnHeaderVertAlign: "middle",
             columns: [
                 {
                     title: "Product ID",
                     field: "productId",
-                    width: 120,
-                    sorter: "string"
+                    sorter: "string",
+                    minWidth: 100,
+                    widthGrow: 1
                 },
                 {
                     title: "Product Name",
                     field: "productName",
-                    width: 200,
-                    widthGrow: 2,
-                    widthShrink: 1,
                     sorter: "string",
-                    headerWordWrap: true,
-                    responsive: 0
+                    minWidth: 150,
+                    widthGrow: 2,
+                    headerWordWrap: true
                 },
                 {
                     title: "Category",
                     field: "category",
-                    width: 120,
-                    sorter: "string"
+                    sorter: "string",
+                    minWidth: 100,
+                    widthGrow: 1
                 },
                 {
                     title: "Current Stock",
                     field: "currentStock",
-                    width: 120,
-                    widthGrow: 1,
-                    widthShrink: 1,
                     sorter: "number",
-                    headerWordWrap: true,
-                    headerHozAlign: "left",
+                    minWidth: 140,
+                    widthGrow: 1,
+                    headerWordWrap: true, // Add word wrap
                     hozAlign: "center",
-                    responsive: 1,
                     formatter: (cell) => {
                         const value = cell.getValue();
                         const row = cell.getRow().getData();
@@ -96,22 +93,19 @@ class OutOfStockAlertsApp {
                 {
                     title: "Min Threshold",
                     field: "minThreshold",
-                    width: 120,
                     sorter: "number",
-                    headerWordWrap: true,
-                    headerHozAlign: "left",
+                    minWidth: 100,
+                    widthGrow: 1,
+                    headerWordWrap: true, // Add word wrap
                     hozAlign: "center"
                 },
                 {
                     title: "Priority",
                     field: "priority",
-                    width: 100,
-                    widthGrow: 1,
-                    widthShrink: 1,
                     sorter: "string",
-                    headerHozAlign: "left",
+                    minWidth: 100,
+                    widthGrow: 1,
                     hozAlign: "center",
-                    responsive: 2,
                     formatter: (cell) => {
                         const value = cell.getValue();
                         const className = `priority-${value}`;
@@ -121,39 +115,36 @@ class OutOfStockAlertsApp {
                 {
                     title: "Last Restock",
                     field: "lastRestock",
-                    width: 120,
                     sorter: "date",
-                    headerWordWrap: true,
-                    headerHozAlign: "left",
+                    minWidth: 100,
+                    widthGrow: 1,
+                    headerWordWrap: true, // Add word wrap
                     hozAlign: "center"
                 },
                 {
                     title: "Alert Date",
                     field: "alertDate",
-                    width: 120,
                     sorter: "date",
-                    headerWordWrap: true,
-                    headerHozAlign: "left",
+                    minWidth: 100,
+                    widthGrow: 1,
+                    headerWordWrap: true, // Add word wrap
                     hozAlign: "center"
                 },
                 {
                     title: "Supplier",
                     field: "supplier",
-                    width: 150,
                     sorter: "string",
-                    headerHozAlign: "left",
+                    minWidth: 120,
+                    widthGrow: 1,
                     hozAlign: "center"
                 },
                 {
                     title: "Acknowledged",
                     field: "acknowledged",
-                    width: 130,
-                    widthGrow: 1,
-                    widthShrink: 1,
-                    headerWordWrap: true,
-                    headerHozAlign: "left",
+                    minWidth: 120,
                     hozAlign: "center",
-                    responsive: 3,
+                    headerHozAlign: "center",
+                    headerWordWrap: true, // Add word wrap
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
                         const isAcknowledged = this.acknowledgedAlerts.has(row.productId);
@@ -161,13 +152,10 @@ class OutOfStockAlertsApp {
                                 data-product-id="${row.productId}" data-product-name="${row.productName}">`;
                     },
                     cellClick: (e, cell) => {
-                        if (e.target.type === 'checkbox') {
-                            const productId = e.target.getAttribute('data-product-id');
-                            const productName = e.target.getAttribute('data-product-name');
-                            const isAcknowledged = e.target.checked;
-                            const productData = this.sampleData.find(item => item.productId === productId);
-                            
-                            this.handleAcknowledgment(productId, isAcknowledged, productData);
+                        const checkbox = e.target;
+                        if (checkbox.classList.contains('acknowledgment-checkbox')) {
+                            e.stopPropagation();
+                            this.handleAcknowledgment(checkbox);
                         }
                     }
                 }

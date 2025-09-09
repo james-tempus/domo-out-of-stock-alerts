@@ -175,17 +175,182 @@ dataService.createStockRangeFilter(0, 10);
 dataService.createProductNameFilter('Bluetooth');
 ```
 
-## TABULATOR CONFIGURATION
+## TABULATOR CONFIGURATION - CRITICAL LESSONS LEARNED
+
+### ⚠️ CRITICAL: Sorting Arrow Issues & Solutions
+**Problem**: Custom CSS can break Tabulator's default sorting arrow positioning, causing arrows to stick to text instead of right-aligning to column borders.
+
+**Root Cause**: Any CSS that changes `display`, `position`, or layout properties on `.tabulator-col-content`, `.tabulator-col-title`, or `.tabulator-col-sorter` can break the default positioning.
+
+**DEFINITIVE SOLUTION** (tested and working):
+```css
+/* Restore proper sorting arrow positioning */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-sorter {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+
+.tabulator .tabulator-header .tabulator-col {
+    position: relative;
+}
+
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+    padding-right: 20px; /* Ensure space for the arrow */
+}
+```
+
+**AVOID**: Never use `display: flex` or `justify-content: space-between` on `.tabulator-col-content` as it breaks arrow positioning.
+
+### ⚠️ CRITICAL: Double Border Fix
+**Problem**: When using `fitColumns` layout, a double border appears on the right side of the table.
+
+**SOLUTION** (tested and working):
+```css
+/* Remove border from last column using multiple selectors for reliability */
+.tabulator .tabulator-header .tabulator-col:nth-child(10),
+.tabulator .tabulator-row .tabulator-cell:nth-child(10),
+.tabulator .tabulator-header .tabulator-col:last-of-type,
+.tabulator .tabulator-row .tabulator-cell:last-of-type,
+.tabulator .tabulator-header .tabulator-col[tabulator-field="acknowledged"],
+.tabulator .tabulator-row .tabulator-cell[tabulator-field="acknowledged"] {
+    border-right: none !important;
+}
+```
+
+**Why multiple selectors**: `:last-child` alone may not work due to Tabulator's complex DOM structure.
+
+### ⚠️ CRITICAL: Header Vertical Alignment
+**Problem**: Column header text and sorting arrows are not vertically aligned.
+
+**SOLUTION**: Use the global table option (NOT individual column properties):
+```javascript
+new Tabulator("#table", {
+    columnHeaderVertAlign: "middle", // This is the correct property
+    // ... other options
+});
+```
+
+**WRONG**: `headerVertAlign: "middle"` on individual columns (this property doesn't exist).
+
+### ⚠️ CRITICAL: Header Height Reduction
+**Problem**: Default header padding is too large.
+
+**SOLUTION**:
+```css
+.tabulator .tabulator-header .tabulator-col {
+    padding: 4px 8px; /* Reduced from default 12px to 4px (67% reduction) */
+}
+```
 
 ### Current Table Setup
 - **Version**: 6.3.1 (CDN: cdn.jsdelivr.net)
 - **Layout**: fitColumns with responsive design
 - **Height**: 400px (required for Virtual DOM)
 - **Sorting**: Enabled on all columns
+- **Header Alignment**: `columnHeaderVertAlign: "middle"`
 - **Filtering**: Internal app filtering (Pending/Acknowledged/All)
 
-### Column Configuration
-Located in `app.js` `initializeTable()` method (lines 47-150):
+### Column Configuration Best Practices
+```javascript
+{
+    title: "Column Name",
+    field: "fieldName",
+    sorter: "string", // or "number", "date"
+    minWidth: 100, // Prevent columns becoming too narrow
+    widthGrow: 1, // How much this column grows (2 = twice as much)
+    widthShrink: 1, // How much this column shrinks
+    headerWordWrap: true, // Allow multi-line headers
+    hozAlign: "center", // Data alignment: "left", "center", "right"
+    headerHozAlign: "left", // Header text alignment (keep left for sorting arrows)
+    formatter: (cell) => { /* Custom formatting */ }
+}
+```
+
+### CRITICAL: Width Management
+**NEVER mix fixed `width` with `widthGrow`/`widthShrink`** - this causes conflicts.
+
+**CORRECT**:
+```javascript
+// Either use fixed widths:
+{ width: 150 }
+
+// OR use flexible sizing:
+{ minWidth: 100, widthGrow: 2, widthShrink: 1 }
+
+// NEVER mix both in the same column
+```
+
+### Data Alignment Strategy (Current App)
+- **Left-aligned**: Product ID, Product Name, Category (text data)
+- **Center-aligned**: Current Stock, Min Threshold, Priority, Last Restock, Alert Date, Supplier, Acknowledged (numbers, dates, status)
+
+### Header Word Wrapping
+**Enable**: `headerWordWrap: true` in column definition
+**CSS Support**: 
+```css
+.tabulator .tabulator-header .tabulator-col .tabulator-col-content .tabulator-col-title {
+    white-space: normal;
+}
+```
+
+### Custom Formatters Examples
+```javascript
+// Status indicators
+formatter: (cell) => {
+    const value = cell.getValue();
+    const row = cell.getRow().getData();
+    if (value === 0) {
+        return `<span class="status-out-of-stock">Out of Stock</span>`;
+    } else if (value <= row.minThreshold) {
+        return `<span class="status-low-stock">${value} (Low)</span>`;
+    }
+    return value;
+}
+
+// Priority styling
+formatter: (cell) => {
+    const value = cell.getValue();
+    const className = `priority-${value}`;
+    return `<span class="${className}">${value.toUpperCase()}</span>`;
+}
+
+// Checkboxes with data attributes
+formatter: (cell) => {
+    const row = cell.getRow().getData();
+    const isAcknowledged = this.acknowledgedAlerts.has(row.productId);
+    return `<input type="checkbox" class="acknowledgment-checkbox" 
+            ${isAcknowledged ? 'checked' : ''} 
+            data-product-id="${row.productId}" 
+            data-product-name="${row.productName}">`;
+}
+```
+
+### CSS Override Priorities
+When overriding Tabulator CSS, use high specificity:
+```css
+/* HIGH SPECIFICITY - Works reliably */
+.tabulator .tabulator-header .tabulator-col .tabulator-col-sorter {
+    /* styles with !important if needed */
+}
+
+/* LOW SPECIFICITY - May not work */
+.tabulator-col-sorter {
+    /* styles */
+}
+```
+
+### Debugging Tabulator Issues
+1. **Check browser console** for JavaScript errors
+2. **Inspect DOM structure** - Tabulator creates complex nested elements
+3. **Test with minimal config** - Strip down to basic table first
+4. **Use cache-busting** - Add `?v=X` to CSS/JS files during development
+5. **Check CSS conflicts** - Disable custom CSS to test vanilla behavior
+6. **Test without custom styles** - Comment out `styles.css` to verify base functionality
+
+### Working Table Configuration (Current App)
+Located in `app.js` `initializeTable()` method:
 
 ```javascript
 columns: [
@@ -356,6 +521,42 @@ Update cache-busting parameters in `index.html`:
 
 ## AI ASSISTANT INSTRUCTIONS
 
+### CRITICAL TABULATOR RULES
+When working with Tabulator in this app:
+
+1. **NEVER use `display: flex` on `.tabulator-col-content`** - This breaks sorting arrow positioning
+2. **Always use `columnHeaderVertAlign: "middle"`** as a global table option, not individual column properties
+3. **Use multiple CSS selectors for last column border removal** - `:last-child` alone may not work
+4. **Always include `position: relative` on `.tabulator-col`** when using absolute positioning for sorters
+5. **Use `!important` sparingly but decisively** when overriding Tabulator's internal CSS
+6. **Test with vanilla Tabulator first** (comment out custom CSS) when debugging issues
+7. **Use cache-busting parameters** (`?v=X`) during development to avoid browser caching issues
+
+### TABULATOR DEBUGGING PROCESS
+When Tabulator issues arise:
+
+1. **Comment out `styles.css`** to test vanilla behavior
+2. **Check browser console** for JavaScript errors
+3. **Use minimal table config** to isolate issues
+4. **Add one feature at a time** after confirming basic functionality
+5. **Use browser dev tools** to inspect DOM structure and CSS conflicts
+6. **Test responsive behavior** at different screen sizes
+
+### COLUMN CONFIGURATION RULES
+- **Width management**: Use EITHER fixed `width` OR `widthGrow`/`widthShrink`, never both
+- **Text alignment**: Use `hozAlign` for data, `headerHozAlign` for headers
+- **Word wrapping**: Use `headerWordWrap: true` for multi-word headers
+- **Formatters**: Always include error handling and data validation
+
+### CSS SPECIFICITY REQUIREMENTS
+Always use full Tabulator selector chains:
+```css
+.tabulator .tabulator-header .tabulator-col .tabulator-col-sorter {
+    /* High specificity - works reliably */
+}
+```
+
+### GENERAL APP DEVELOPMENT
 When making changes to this app:
 
 1. **Always update cache versions** in `index.html` after JS/CSS changes
@@ -370,6 +571,7 @@ When making changes to this app:
 10. **Clean up old files manually in Domo UI if needed**
 11. **Use .md extension** for documentation files (Domo truncates large .txt files)
 12. **Test file downloads** with `domo download` to verify content integrity
+13. **Document any new Tabulator discoveries** in this PROMPT.md file
 
 ### Key Files to Modify
 - **Data changes**: `data-service.js`
