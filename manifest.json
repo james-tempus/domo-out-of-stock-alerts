@@ -5,7 +5,6 @@
     "width": 3,
     "height": 2
   },
-  "fileName": "manifest.json",
   "datasetsMapping": [
     {
       "dataSetId": "00000000-0000-0000-0000-000000000000",
@@ -51,8 +50,7 @@
           "alias": "supplier",
           "columnName": "supplier"
         }
-      ],
-      "dql": null
+      ]
     }
   ],
   "collectionsMapping": [
@@ -86,7 +84,5 @@
       }
     }
   ],
-  "fullpage": true,
-  "packagesMapping": [],
   "id": "ee6be1c5-8b99-49dd-bfdb-9274f3fe1b79"
 }
