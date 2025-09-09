@@ -90,3 +90,9 @@ Your Domo dataset should include these columns:
 - `alert_date` (or `alertDate`)
 - `supplier`
 - `acknowledged`
+
+### Setup Instructions
+1. **Update manifest.json**: Replace `YOUR_DATASET_ID_HERE` with your actual Domo dataset ID
+2. **Dataset Alias**: The app uses the alias `product-alerts` to reference your dataset
+3. **AppDB Collection**: Acknowledgments are stored in the `acknowledged-alerts` collection
+4. **Column Mapping**: The app handles both snake_case and camelCase column names automatically

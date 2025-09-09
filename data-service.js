@@ -4,7 +4,7 @@
 class DataService {
     constructor() {
         this.isProduction = typeof domo !== 'undefined';
-        this.datasetId = 'product-alerts-dataset'; // From manifest.json
+        this.datasetAlias = 'product-alerts'; // From manifest.json mapping
         this.localData = null;
     }
 
@@ -22,10 +22,10 @@ class DataService {
     // Load data from Domo dataset (production)
     async loadDomoData() {
         try {
-            console.log('Loading data from Domo dataset:', this.datasetId);
+            console.log('Loading data from Domo dataset alias:', this.datasetAlias);
             
-            // Query the Domo dataset
-            const data = await domo.get(`/data/v1/${this.datasetId}`);
+            // Query the Domo dataset using the alias from manifest.json
+            const data = await domo.get(`/data/v1/${this.datasetAlias}`);
             
             // Transform Domo data to match our expected format
             return data.map((row, index) => ({
@@ -194,8 +194,9 @@ class DataService {
                     acknowledgedBy: 'user' // In production, get actual user ID
                 };
 
-                await domo.post('/data/v1/appdb/acknowledged-alerts', acknowledgmentData);
-                console.log('Acknowledgment saved to AppDB');
+                // Use Domo's AppDB collection API
+                await domo.post('/data/v1/collections/acknowledged-alerts', acknowledgmentData);
+                console.log('Acknowledgment saved to AppDB collection');
             } catch (error) {
                 console.error('Error saving to AppDB:', error);
                 throw error;
@@ -223,8 +224,9 @@ class DataService {
             try {
                 console.log('Removing acknowledgment from Domo AppDB:', productId);
                 
-                await domo.delete(`/data/v1/appdb/acknowledged-alerts/${productId}`);
-                console.log('Acknowledgment removed from AppDB');
+                // Use Domo's AppDB collection API with query parameter
+                await domo.delete(`/data/v1/collections/acknowledged-alerts?productId=${productId}`);
+                console.log('Acknowledgment removed from AppDB collection');
             } catch (error) {
                 console.error('Error removing from AppDB:', error);
                 throw error;
@@ -243,9 +245,9 @@ class DataService {
     async loadAcknowledgedAlerts() {
         if (this.isProduction) {
             try {
-                console.log('Loading acknowledged alerts from Domo AppDB');
+                console.log('Loading acknowledged alerts from Domo AppDB collection');
                 
-                const data = await domo.get('/data/v1/appdb/acknowledged-alerts');
+                const data = await domo.get('/data/v1/collections/acknowledged-alerts');
                 return new Set(data.map(item => item.productId));
             } catch (error) {
                 console.error('Error loading acknowledged alerts from AppDB:', error);

@@ -6,14 +6,12 @@
   "width": 3,
   "height": 2,
   "fileName": "manifest.json",
-  "mapping": {
-    "datasets": [
-      {
-        "id": "product-alerts-dataset",
-        "name": "Product Alerts Dataset",
-        "description": "Dataset containing out-of-stock product alerts with acknowledgment status"
-      }
-    ]
-  },
+  "mapping": [
+    {
+      "alias": "product-alerts",
+      "dataSetId": "YOUR_DATASET_ID_HERE",
+      "fields": []
+    }
+  ],
   "id": "5e067702-328a-4d47-9fbe-dca1c34eca5e"
 }
