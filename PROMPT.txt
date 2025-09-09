@@ -366,8 +366,57 @@ When making changes to this app:
 - v1.1.0: Added proper Domo dataset querying and filter listening
 - v1.1.1: Fixed filter listening to use domo.onFiltersUpdate()
 
+## DOCUMENTATION SOURCES & REFERENCES
+
+### Primary Documentation Used
+- **Domo JS API**: https://developer.domo.com/portal/e947d87e17547-domo-js
+- **Domo Query API**: https://developer.domo.com/portal/d5da72027f4a1-query#building-a-query
+- **Domo AppDB API**: https://developer.domo.com/portal/1l1fm2g0sfm69-app-db-api
+- **Tabulator Documentation**: https://tabulator.info/docs
+- **Tabulator 6.3.1 Reference**: https://tabulator.info/docs/6.3
+
+### Specific API References
+- **Domo Filter Methods**: `domo.onFiltersUpdate()`, `domo.filterContainer()`
+- **Domo Data Methods**: `domo.query()`, `domo.get()`, `domo.onDataUpdate()`
+- **Domo AppDB Endpoints**: `/data/v1/appdb/{collectionName}`
+- **Domo Dataset Endpoints**: `/data/v1/{alias}`
+
+### Tabulator Specific Documentation
+- **Column Configuration**: https://tabulator.info/docs/6.3/columns
+- **Formatters**: https://tabulator.info/docs/6.3/format
+- **Layout Options**: https://tabulator.info/docs/6.3/layout
+- **Responsive Design**: https://tabulator.info/docs/6.3/layout#responsive
+- **Event Handling**: https://tabulator.info/docs/6.3/callbacks
+
+### Domo Platform Documentation
+- **Custom Apps Overview**: https://developer.domo.com/docs/custom-apps
+- **Procode Apps**: https://developer.domo.com/docs/procode-apps
+- **Dataset API**: https://developer.domo.com/docs/dataset-api
+- **AppDB Sync**: https://developer.domo.com/docs/appdb-sync
+
+### Development Resources
+- **Domo CLI**: https://developer.domo.com/docs/domo-cli
+- **Local Development**: https://developer.domo.com/docs/local-development
+- **App Deployment**: https://developer.domo.com/docs/app-deployment
+
+### Source Data & References Used
+- **Sample Data**: 8 product alerts with various categories and priorities
+- **Data Types**: Electronics, Food & Beverage, Home & Kitchen, Sports & Fitness, Clothing, Health & Wellness, Office Supplies
+- **Priority Levels**: high, medium, low
+- **Status Types**: out-of-stock, low-stock
+- **Stock Thresholds**: 0-30 units with min thresholds 5-30
+- **Suppliers**: Various fictional suppliers for each category
+
+### Key Implementation Decisions
+- **Tabulator Version**: 6.3.1 (latest stable with proper responsive features)
+- **CDN Provider**: cdn.jsdelivr.net (reliable, fast loading)
+- **Domo API Methods**: Used official methods from documentation
+- **Filter Integration**: Implemented proper domo.onFiltersUpdate() instead of generic events
+- **SQL Querying**: Used domo.query() with proper WHERE clause building
+- **AppDB Sync**: Configured for real-time synchronization to datasets
+
 ## CONTACT & SUPPORT
-- **GitHub Repository**: [Your Repo URL]
-- **Live Preview**: [GitHub Pages URL]
-- **Domo Documentation**: https://developer.domo.com/
+- **GitHub Repository**: https://github.com/james-tempus/domo-out-of-stock-alerts
+- **Live Preview**: https://james-tempus.github.io/domo-out-of-stock-alerts/
+- **Domo Developer Portal**: https://developer.domo.com/
 - **Tabulator Documentation**: https://tabulator.info/docs
