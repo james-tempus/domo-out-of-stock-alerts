@@ -1,0 +1,11 @@
+{
+  "name": "test-manifest-only",
+  "version": "1.0.0",
+  "size": {
+    "width": 1,
+    "height": 1
+  },
+  "fileName": "testmanifest.json",
+  "datasetsMapping": [],
+  "id": "04eb4fe6-4588-4385-b372-1c86eac04468"
+}
