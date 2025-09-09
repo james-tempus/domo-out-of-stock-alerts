@@ -92,7 +92,28 @@ Your Domo dataset should include these columns:
 - `acknowledged`
 
 ### Setup Instructions
-1. **Update manifest.json**: Replace `YOUR_DATASET_ID_HERE` with your actual Domo dataset ID
+1. **Update manifest.json**: 
+   - Replace `YOUR_DATASET_ID_HERE` with your actual product alerts dataset ID
+   - Replace `YOUR_ACKNOWLEDGMENTS_DATASET_ID_HERE` with your acknowledgments dataset ID
 2. **Dataset Alias**: The app uses the alias `product-alerts` to reference your dataset
 3. **AppDB Collection**: Acknowledgments are stored in the `acknowledged-alerts` collection
-4. **Column Mapping**: The app handles both snake_case and camelCase column names automatically
+4. **AppDB Sync**: Enabled with real-time sync to push acknowledgment data to a dataset
+5. **Column Mapping**: The app handles both snake_case and camelCase column names automatically
+
+### AppDB Sync Configuration
+The app is configured with `syncEnabled: true` to automatically sync acknowledgment data from AppDB to a Domo dataset:
+
+- **Collection**: `acknowledged-alerts`
+- **Sync Frequency**: Real-time
+- **Column Mapping**: 
+  - `productId` → `product_id`
+  - `productName` → `product_name`
+  - `acknowledgedAt` → `acknowledged_at`
+  - `acknowledgedBy` → `acknowledged_by`
+
+### Benefits of AppDB Sync
+- **Real-time Data**: Acknowledgments are immediately available in datasets for reporting
+- **Security Compliant**: Uses Domo's official sync mechanism (no direct dataset writes from apps)
+- **Automatic**: No manual intervention required - sync happens automatically
+- **Governance**: Maintains data integrity and access controls
+- **Reporting Ready**: Synced data can be used in dashboards, cards, and other Domo features

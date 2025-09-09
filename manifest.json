@@ -13,5 +13,21 @@
       "fields": []
     }
   ],
+  "syncEnabled": true,
+  "syncConfig": {
+    "collections": [
+      {
+        "collectionName": "acknowledged-alerts",
+        "targetDatasetId": "YOUR_ACKNOWLEDGMENTS_DATASET_ID_HERE",
+        "syncFrequency": "realtime",
+        "columnMapping": {
+          "productId": "product_id",
+          "productName": "product_name",
+          "acknowledgedAt": "acknowledged_at",
+          "acknowledgedBy": "acknowledged_by"
+        }
+      }
+    ]
+  },
   "id": "5e067702-328a-4d47-9fbe-dca1c34eca5e"
 }
