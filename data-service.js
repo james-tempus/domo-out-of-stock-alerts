@@ -381,7 +381,7 @@ class DataService {
         return conditions;
     }
 
-    // Set up filter listening for page-level filters
+    // Set up filter listening for page-level filters using proper Domo JS API
     setupFilterListening() {
         if (!this.isProduction) {
             console.log('Filter listening not available in development mode');
@@ -389,35 +389,89 @@ class DataService {
         }
 
         try {
-            // Listen for filter changes on the page
-            // This uses Domo's filter API to respond to page-level filters
-            domo.on('filter', (filterData) => {
-                console.log('Page filter changed:', filterData);
-                this.handleFilterChange(filterData);
+            // Use the proper Domo JS API for filter listening
+            // This listens for filter updates on the page
+            domo.onFiltersUpdate((filters) => {
+                console.log('Page filters updated:', filters);
+                this.handleFilterChange(filters);
             });
 
-            // Also listen for specific dataset filters if available
-            domo.on('datasetFilter', (filterData) => {
-                console.log('Dataset filter changed:', filterData);
-                this.handleFilterChange(filterData);
+            // Also listen for data updates that might affect our dataset
+            domo.onDataUpdate((alias) => {
+                console.log('Data updated for alias:', alias);
+                if (alias === this.datasetAlias) {
+                    console.log('Our dataset was updated, refreshing data');
+                    this.handleDataUpdate();
+                }
             });
 
-            console.log('Filter listening setup complete');
+            console.log('Filter listening setup complete using domo.onFiltersUpdate()');
         } catch (error) {
             console.error('Error setting up filter listening:', error);
+        }
+    }
+
+    // Handle data updates
+    handleDataUpdate() {
+        try {
+            console.log('Handling data update, refreshing data');
+            // Notify listeners that data should be refreshed
+            this.notifyFilterListeners();
+        } catch (error) {
+            console.error('Error handling data update:', error);
         }
     }
 
     // Handle filter changes and update current filters
     handleFilterChange(filterData) {
         try {
-            // Update current filters based on the filter data
-            if (filterData && typeof filterData === 'object') {
-                Object.keys(filterData).forEach(key => {
-                    this.currentFilters[key] = filterData[key];
+            // Domo filters come in a specific format with column, operator, values, dataType
+            // Convert Domo filter format to our internal format
+            if (filterData && Array.isArray(filterData)) {
+                this.currentFilters = {};
+                
+                filterData.forEach(filter => {
+                    if (filter.column && filter.values) {
+                        const columnName = filter.column;
+                        const values = filter.values;
+                        
+                        // Map Domo filter operators to our SQL conditions
+                        switch (filter.operator) {
+                            case 'IN':
+                                this.currentFilters[columnName] = values;
+                                break;
+                            case 'EQUALS':
+                                this.currentFilters[columnName] = values[0];
+                                break;
+                            case 'CONTAINS':
+                                this.currentFilters[columnName] = `%${values[0]}%`;
+                                break;
+                            case 'BETWEEN':
+                                if (values.length >= 2) {
+                                    this.currentFilters[columnName] = {
+                                        min: values[0],
+                                        max: values[1]
+                                    };
+                                }
+                                break;
+                            case 'GREATER_THAN':
+                                this.currentFilters[columnName] = {
+                                    min: values[0]
+                                };
+                                break;
+                            case 'LESS_THAN':
+                                this.currentFilters[columnName] = {
+                                    max: values[0]
+                                };
+                                break;
+                            default:
+                                // For other operators, store as-is
+                                this.currentFilters[columnName] = values[0];
+                        }
+                    }
                 });
                 
-                console.log('Updated filters:', this.currentFilters);
+                console.log('Updated filters from Domo format:', this.currentFilters);
                 
                 // Notify listeners that filters have changed
                 this.notifyFilterListeners();
@@ -458,6 +512,49 @@ class DataService {
         } else {
             return await this.loadLocalData();
         }
+    }
+
+    // Create programmatic filters using domo.filterContainer()
+    createFilter(column, operator, values, dataType = 'STRING') {
+        if (!this.isProduction) {
+            console.log('Filter creation not available in development mode');
+            return;
+        }
+
+        try {
+            const filterConfig = [{
+                column: column,
+                operator: operator,
+                values: values,
+                dataType: dataType
+            }];
+
+            console.log('Creating filter:', filterConfig);
+            domo.filterContainer(filterConfig);
+        } catch (error) {
+            console.error('Error creating filter:', error);
+        }
+    }
+
+    // Create common filter types for our app
+    createCategoryFilter(categories) {
+        this.createFilter('category', 'IN', categories, 'STRING');
+    }
+
+    createPriorityFilter(priorities) {
+        this.createFilter('priority', 'IN', priorities, 'STRING');
+    }
+
+    createStatusFilter(statuses) {
+        this.createFilter('status', 'IN', statuses, 'STRING');
+    }
+
+    createStockRangeFilter(minStock, maxStock) {
+        this.createFilter('current_stock', 'BETWEEN', [minStock, maxStock], 'NUMBER');
+    }
+
+    createProductNameFilter(searchTerm) {
+        this.createFilter('product_name', 'CONTAINS', [searchTerm], 'STRING');
     }
 }
 

@@ -312,7 +312,27 @@ class OutOfStockAlertsApp {
             }
         });
         
+        // Example: Create some default filters for demonstration
+        // In production, these would be created based on user interaction or page context
+        this.setupDefaultFilters();
+        
         console.log('Filter listening setup complete');
+    }
+
+    // Set up default filters for demonstration
+    setupDefaultFilters() {
+        if (typeof domo !== 'undefined') {
+            // Example: Create a filter to show only high priority alerts
+            // this.dataService.createPriorityFilter(['high']);
+            
+            // Example: Create a filter to show only out-of-stock items
+            // this.dataService.createStatusFilter(['out-of-stock']);
+            
+            // Example: Create a filter for specific categories
+            // this.dataService.createCategoryFilter(['Electronics', 'Office Supplies']);
+            
+            console.log('Default filters available (commented out for demo)');
+        }
     }
 }
 
